@@ -4,7 +4,7 @@ from django.conf import settings
 
 # These models are created only for testing purpose.
 # We want to be sure they are not created on a syncdb for production.
-if hasattr(settings, 'NESTED_COLLECTOR_LAUNCH_TESTS') and settings.NESTED_COLLECTOR_LAUNCH_TESTS:
+if hasattr(settings, 'DEEP_COLLECTOR_LAUNCH_TESTS') and settings.DEEP_COLLECTOR_LAUNCH_TESTS:
 
     class FKDummyModel(models.Model):
         name = models.CharField(max_length=255)

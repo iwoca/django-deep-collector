@@ -2,9 +2,9 @@ from copy import copy
 import json
 from django.test import TestCase
 
-from deep_collector.factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
-                                        ForeignKeyToBaseModelFactory, ClassLevel3Factory,
-                                        ManyToManyToBaseModelWithRelatedNameFactory, ChildModelFactory)
+from .factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
+                        ForeignKeyToBaseModelFactory, ClassLevel3Factory,
+                        ManyToManyToBaseModelWithRelatedNameFactory, ChildModelFactory)
 from deep_collector.serializers import MultiModelInheritanceSerializer
 from deep_collector.utils import RelatedObjectsCollector
 

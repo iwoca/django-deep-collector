@@ -3,13 +3,13 @@ import factory
 from django.conf import settings
 
 try:
-    from nested_collector.models import (FKDummyModel, O2ODummyModel, BaseModel, ManyToManyToBaseModel,
+    from .models import (FKDummyModel, O2ODummyModel, BaseModel, ManyToManyToBaseModel,
         ForeignKeyToBaseModel, OneToOneToBaseModel, ClassLevel1, ClassLevel2, ClassLevel3,
         ManyToManyToBaseModelWithRelatedName, ChildModel)
 except ImportError as e:
-    if not hasattr(settings, 'NESTED_COLLECTOR_LAUNCH_TESTS'):
-        msg = "If you are trying to launch tests for nested_collector app, don't forget to add "
-        msg += "'NESTED_COLLECTOR_LAUNCH_TESTS = True' to your test settings. "
+    if not hasattr(settings, 'DEEP_COLLECTOR_LAUNCH_TESTS'):
+        msg = "If you are trying to launch tests for deep_collector app, don't forget to add "
+        msg += "'DEEP_COLLECTOR_LAUNCH_TESTS = True' to your test settings. "
         msg += "Models are not created by default because they are test-purpose only, and we don't want them to "
         msg += "pollute production database on syncdb."
         raise Exception(msg)
