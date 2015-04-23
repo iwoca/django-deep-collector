@@ -89,7 +89,7 @@ class TestCollectorParameters(TestCase):
         obj = BaseModelFactory.create()
 
         collector = RelatedObjectsCollector()
-        collector.EXCLUDE_MODELS = ['nested_collector.o2odummymodel']
+        collector.EXCLUDE_MODELS = ['tests.o2odummymodel']
         collector.collect(obj)
 
         self.assertNotIn(obj.o2o, collector.get_collected_objects())
@@ -99,7 +99,7 @@ class TestCollectorParameters(TestCase):
 
         collector = RelatedObjectsCollector()
         collector.EXCLUDE_DIRECT_FIELDS = {
-            'nested_collector.basemodel': ['fkey']
+            'tests.basemodel': ['fkey']
         }
         collector.collect(obj)
 
@@ -111,7 +111,7 @@ class TestCollectorParameters(TestCase):
 
         collector = RelatedObjectsCollector()
         collector.EXCLUDE_RELATED_FIELDS = {
-            'nested_collector.basemodel': ['manytomanytobasemodel_set']
+            'tests.basemodel': ['manytomanytobasemodel_set']
         }
         collector.collect(obj)
 
@@ -123,7 +123,7 @@ class TestCollectorParameters(TestCase):
 
         collector = RelatedObjectsCollector()
         collector.EXCLUDE_RELATED_FIELDS = {
-            'nested_collector.basemodel': ['custom_related_m2m_name']
+            'tests.basemodel': ['custom_related_m2m_name']
         }
         collector.collect(obj)
 
