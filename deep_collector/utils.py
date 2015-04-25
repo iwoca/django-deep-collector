@@ -116,6 +116,8 @@ class RelatedObjectsCollector(object):
     # Allow to recursively collect other objects that have same type as root collected object.
     ALLOWS_SAME_TYPE_AS_ROOT_COLLECT = False
 
+    MAXIMUM_RELATED_INSTANCES = 50
+
     def clean_by_fields(self, obj, fields, get_field_fn, exclude_list):
         """
         Function used to exclude defined fields from object collect.
@@ -375,7 +377,7 @@ class RelatedObjectsCollector(object):
             logger.debug('*' * 80)
             logger.debug('*****  Got {nb} related instance(s) for {related} *****'.format(nb=len(related_objs), related=related.name))
             logger.debug('*' * 80)
-            if len(related_objs) > 50:
+            if len(related_objs) > self.MAXIMUM_RELATED_INSTANCES:
                 logger.debug('Too many related objects. Would be irrelevant to introspect...')
                 related_objs = []
         return related_objs
