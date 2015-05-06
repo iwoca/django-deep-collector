@@ -99,7 +99,7 @@ By default, every model and field is collected, but you can override some parame
 
 ::
 
-    >>> EXCLUDE_MODELS = ['sites.site', 'auth.permission', 'contenttypes.contenttype', 'auth.group']
+    >>> EXCLUDE_MODELS = ['sites.site', 'auth.permission', 'auth.group']
 Every time we will try to collect an object of this model type, it won't be collected.
 
 - EXCLUDE_DIRECT_FIELDS: exclude direct fields from specified models
