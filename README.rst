@@ -43,7 +43,8 @@ This class is used to introspect an object, to get every other objects that depe
     >>>     o2o = models.OneToOneField(classC)
     >>>     m2m = models.ManyToManyField(classD)
 
- - Its 'related' fields, so other django model that are related to this object by relation fields.
+
+- Its 'related' fields, so other django model that are related to this object by relation fields.
 
 ::
 
@@ -56,9 +57,10 @@ This class is used to introspect an object, to get every other objects that depe
     >>> class classD(models.Model):
     >>>     m2mto = models.ManyToManyField(classA)
 
+
 2. For every field, we get associated object(s) of objA:
 
- - If it's a direct field, we get objects by:
+- If it's a direct field, we get objects by:
 
 ::
 
@@ -67,7 +69,8 @@ This class is used to introspect an object, to get every other objects that depe
     >>>     o2o = models.OneToOneField(classC)      # objA.o2o
     >>>     m2m = models.ManyToManyField(classD)    # objA.m2m.all()
 
- - If it's a related field, we get objects by:
+
+- If it's a related field, we get objects by:
 
 ::
 
@@ -80,12 +83,14 @@ This class is used to introspect an object, to get every other objects that depe
     >>> class classD(models.Model):
     >>>     m2mto = models.ManyToManyField(classA)  # objA.classd_set.all()
 
+
 If we are using related_name attribute, then we access manager with its related_name:
 
 ::
 
     >>> class classE(models.Model):
     >>>     m2mto = models.ForeignKey(classA, related_name='classE')  # objA.classE.all()
+
 
 3. For each associated object, we go back to step 1. and get every field, ...
 
@@ -95,14 +100,14 @@ Parameters
 You can customize which model/field is collected.
 By default, every model and field is collected, but you can override some parameters to have custom behaviour:
 
-- EXCLUDE_MODELS: exclude models (expecting a list of '<app_label>.<module_name>')
+- `EXCLUDE_MODELS`: exclude models (expecting a list of '<app_label>.<module_name>')
 
 ::
 
     >>> EXCLUDE_MODELS = ['sites.site', 'auth.permission', 'auth.group']
 Every time we will try to collect an object of this model type, it won't be collected.
 
-- EXCLUDE_DIRECT_FIELDS: exclude direct fields from specified models
+- `EXCLUDE_DIRECT_FIELDS`: exclude direct fields from specified models
 
 ::
 
@@ -111,7 +116,7 @@ Every time we will try to collect an object of this model type, it won't be coll
         }
 On User model, when we will get direct fields, we won't take into account 'groups' field.
 
-- EXCLUDE_RELATED_FIELDS: exclude related fields from specified models
+- `EXCLUDE_RELATED_FIELDS`: exclude related fields from specified models
 
 ::
 
@@ -128,4 +133,4 @@ Miscellaneous
 To avoid some recursive collect between 2 objects (if an object has a direct field to another one, it means that other object has a related field to this first one), we detect if an object has already been collected before trying to collect it.
 
 We are also avoiding by default to collect objects that have the same type as the root one, to prevent collecting too many data.
-This behaviour can be changed with ALLOWS_SAME_TYPE_AS_ROOT_COLLECT parameter.
+This behaviour can be changed with `ALLOWS_SAME_TYPE_AS_ROOT_COLLECT` parameter.
