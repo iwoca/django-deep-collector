@@ -34,7 +34,7 @@ This class is used to introspect an object, to get every other objects that depe
 'relation' fields, i.e. ForeignKey, OneToOneField and ManyToManyField.
 
 1. We start from given object (of class classA for example), and loop over :
-    - Its 'direct' fields, it means the relation fields that are explicitly declared in this django model.
+ - Its 'direct' fields, it means the relation fields that are explicitly declared in this django model.
 
 ::
 
@@ -43,7 +43,7 @@ This class is used to introspect an object, to get every other objects that depe
     >>>     o2o = models.OneToOneField(classC)
     >>>     m2m = models.ManyToManyField(classD)
 
-   - Its 'related' fields, so other django model that are related to this object by relation fields.
+ - Its 'related' fields, so other django model that are related to this object by relation fields.
 
 ::
 
@@ -58,7 +58,8 @@ This class is used to introspect an object, to get every other objects that depe
 
 2. For every field, we get associated object(s) of objA:
 
-    - If it's a direct field, we get objects by:
+ - If it's a direct field, we get objects by:
+
 ::
 
     >>> class classA(models.Model):
@@ -66,7 +67,8 @@ This class is used to introspect an object, to get every other objects that depe
     >>>     o2o = models.OneToOneField(classC)      # objA.o2o
     >>>     m2m = models.ManyToManyField(classD)    # objA.m2m.all()
 
-   - If it's a related field, we get objects by:
+ - If it's a related field, we get objects by:
+
 ::
 
     >>> class classB(models.Model):
@@ -120,7 +122,8 @@ On User model, we don't want to collect sessions that are associated to this use
  name we have to use to get these session, 'session_set', to exclude it from collecting.
 
 
-Miscellaneous:
+Miscellaneous
+=============
 
 To avoid some recursive collect between 2 objects (if an object has a direct field to another one, it means that other object has a related field to this first one), we detect if an object has already been collected before trying to collect it.
 
