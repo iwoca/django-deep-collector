@@ -34,7 +34,8 @@ This class is used to introspect an object, to get every other objects that depe
 'relation' fields, i.e. ForeignKey, OneToOneField and ManyToManyField.
 
 1. We start from given object (of class classA for example), and loop over :
- - Its 'direct' fields, it means the relation fields that are explicitly declared in this django model.
+
+- Its 'direct' fields, it means the relation fields that are explicitly declared in this django model.
 
 ::
 
