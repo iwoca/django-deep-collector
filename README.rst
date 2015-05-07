@@ -13,7 +13,7 @@ Create a new instance of RelatedObjectsCollector, and launch collector on one ob
 
 ::
 
-    >>> from deep_collector RelatedObjectsCollector()
+    >>> from deep_collector import RelatedObjectsCollector
     >>>
     >>> user = User.objects.all()[0]
     >>> collector = RelatedObjectsCollector()
