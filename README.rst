@@ -129,11 +129,9 @@ On User model, when we will get direct fields, we won't take into account 'group
 
 On User model, we don't want to collect sessions that are associated to this user, so we put the exact accessor name we have to use to get these sessions, 'session_set', to exclude them from collection.
 
+- `ALLOWS_SAME_TYPE_AS_ROOT_COLLECT`: avoid by default to collect objects that have the same type as the root one, to prevent collecting too many data.
 
 Miscellaneous
 =============
 
 To avoid some recursive collect between 2 objects (if an object has a direct field to another one, it means that other object has a related field to this first one), we detect if an object has already been collected before trying to collect it.
-
-We are also avoiding by default to collect objects that have the same type as the root one, to prevent collecting too many data.
-This behaviour can be changed with `ALLOWS_SAME_TYPE_AS_ROOT_COLLECT` parameter.
