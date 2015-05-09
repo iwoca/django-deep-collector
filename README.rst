@@ -116,6 +116,7 @@ Every time we will try to collect an object of this model type, it won't be coll
     >>> EXCLUDE_DIRECT_FIELDS = {
             'auth.user': ['groups'],
         }
+
 On User model, when we will get direct fields, we won't take into account 'groups' field.
 
 - `EXCLUDE_RELATED_FIELDS`: exclude related fields from specified models
@@ -125,8 +126,8 @@ On User model, when we will get direct fields, we won't take into account 'group
     >>> EXCLUDE_RELATED_FIELDS = {
             'auth.user': ['session_set']
         }
-On User model, we don't want to collect sessions that are associated to this user, so we put the exact accessor
- name we have to use to get these session, 'session_set', to exclude it from collecting.
+
+On User model, we don't want to collect sessions that are associated to this user, so we put the exact accessor name we have to use to get these sessions, 'session_set', to exclude them from collection.
 
 
 Miscellaneous
