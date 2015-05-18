@@ -7,6 +7,7 @@ from .factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
                         ManyToManyToBaseModelWithRelatedNameFactory, ChildModelFactory)
 from deep_collector.serializers import MultiModelInheritanceSerializer
 from deep_collector.utils import RelatedObjectsCollector
+from .models import ForeignKeyToBaseModel
 
 
 class TestDirectRelations(TestCase):
@@ -128,6 +129,25 @@ class TestCollectorParameters(TestCase):
         collector.collect(obj)
 
         self.assertNotIn(m2m_model, collector.get_collected_objects())
+
+    def test_parameter_to_avoid_collect_if_too_many_related_objects(self):
+        obj = BaseModelFactory.create()
+        fkey1 = ForeignKeyToBaseModelFactory(fkeyto=obj)
+        fkey2 = ForeignKeyToBaseModelFactory(fkeyto=obj)
+        fkey3 = ForeignKeyToBaseModelFactory(fkeyto=obj)
+
+        collector = RelatedObjectsCollector()
+        collector.MAXIMUM_RELATED_INSTANCES = 3
+        collector.collect(obj)
+        collected_objects = collector.get_collected_objects()
+
+        self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 3)
+
+        # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
+        collector.MAXIMUM_RELATED_INSTANCES = 2
+        collector.collect(obj)
+        collected_objects = collector.get_collected_objects()
+        self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 0)
 
 
 class TestMultiModelInheritanceSerializer(TestCase):

@@ -330,7 +330,7 @@ class RelatedObjectsCollector(object):
                     nb=objs_count, related=field.name))
                 logger.debug('*' * 80)
 
-                if objs_count > 50:
+                if objs_count > self.MAXIMUM_RELATED_INSTANCES:
                     logger.debug('Too many related objects. Would be irrelevant to introspect...')
                 else:
                     local_objs += m2m_manager.all()
