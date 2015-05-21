@@ -3,11 +3,13 @@ language: python
 python:
   - "2.7"
 
+env:
+  - TOXENV=django14
+
 script:
-  - python runtests.py
+  - tox
 
 install:
-  - pip install django==1.4
   - pip install factory_boy
   - pip install -e .
 
