@@ -10,6 +10,7 @@ script:
   - tox
 
 install:
+  - pip install tox
   - pip install factory_boy
   - pip install -e .
 
