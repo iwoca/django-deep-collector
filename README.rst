@@ -1,6 +1,7 @@
-=====
+==============
 Deep Collector
-=====
+==============
+
 .. image:: https://travis-ci.org/iwoca/django-deep-collector.svg?branch=master
     :target: https://travis-ci.org/iwoca/django-deep-collector.svg
 
@@ -11,21 +12,21 @@ Usage
 
 Create a new instance of RelatedObjectsCollector, and launch collector on one object:
 
-::
+.. code-block:: python
 
-    >>> from deep_collector import RelatedObjectsCollector
-    >>> from django.contrib.auth.models import User
-    >>>
-    >>> user = User.objects.all()[0]
-    >>> collector = RelatedObjectsCollector()
-    >>> collector.collect(user)
-    >>> related_objects = collector.get_all_related_objects()
+    from deep_collector import RelatedObjectsCollector
+    from django.contrib.auth.models import User
+
+    user = User.objects.all()[0]
+    collector = RelatedObjectsCollector()
+    collector.collect(user)
+    related_objects = collector.get_all_related_objects()
 
 If you want to save it in a file to be 'django load_data'-like imported, you can use (only Django 1.4 supported for now):
 
-::
+.. code-block:: python
 
-    >>> string_buffer = collector.get_json_serialized_objects()
+    string_buffer = collector.get_json_serialized_objects()
 
 
 How it works
@@ -38,61 +39,60 @@ This class is used to introspect an object, to get every other objects that depe
 
 - Its 'direct' fields, it means the relation fields that are explicitly declared in this django model.
 
-::
+.. code-block:: python
 
-    >>> class classA(models.Model):
-    >>>     fkey = models.ForeignKey(classB)
-    >>>     o2o = models.OneToOneField(classC)
-    >>>     m2m = models.ManyToManyField(classD)
+    class classA(models.Model):
+        fkey = models.ForeignKey(classB)
+        o2o = models.OneToOneField(classC)
+        m2m = models.ManyToManyField(classD)
 
 
 - Its 'related' fields, so other django model that are related to this object by relation fields.
 
-::
+.. code-block:: python
 
-    >>> class classB(models.Model):
-    >>>     fkeyto = models.ForeignKey(classA)
-    >>>
-    >>> class classC(models.Model):
-    >>>     o2oto = models.OneToOneField(classA)
-    >>>
-    >>> class classD(models.Model):
-    >>>     m2mto = models.ManyToManyField(classA)
+    class classB(models.Model):
+        fkeyto = models.ForeignKey(classA)
+
+    class classC(models.Model):
+        o2oto = models.OneToOneField(classA)
+
+    class classD(models.Model):
+        m2mto = models.ManyToManyField(classA)
 
 
 2. For every field, we get associated object(s) of objA:
 
 - If it's a direct field, we get objects by:
 
-::
+.. code-block:: python
 
-    >>> class classA(models.Model):
-    >>>     fkey = models.ForeignKey(classB)        # objA.fkey
-    >>>     o2o = models.OneToOneField(classC)      # objA.o2o
-    >>>     m2m = models.ManyToManyField(classD)    # objA.m2m.all()
+    class classA(models.Model):
+        fkey = models.ForeignKey(classB)        # objA.fkey
+        o2o = models.OneToOneField(classC)      # objA.o2o
+        m2m = models.ManyToManyField(classD)    # objA.m2m.all()
 
 
 - If it's a related field, we get objects by:
 
-::
+.. code-block:: python
 
-    >>> class classB(models.Model):
-    >>>     fkeyto = models.ForeignKey(classA)      # objA.classb_set.all()
-    >>>
-    >>> class classC(models.Model):
-    >>>     o2oto = models.OneToOneField(classA)    # objA.classC (not a manager, because OneToOneField is a unique rel)
-    >>>
-    >>> class classD(models.Model):
-    >>>     m2mto = models.ManyToManyField(classA)  # objA.classd_set.all()
+    class classB(models.Model):
+        fkeyto = models.ForeignKey(classA)      # objA.classb_set.all()
+
+    class classC(models.Model):
+        o2oto = models.OneToOneField(classA)    # objA.classC (not a manager, because OneToOneField is a unique rel)
+
+    class classD(models.Model):
+        m2mto = models.ManyToManyField(classA)  # objA.classd_set.all()
 
 
 If we are using related_name attribute, then we access manager with its related_name:
 
-::
+.. code-block:: python
 
-    >>> class classE(models.Model):
-    >>>     m2mto = models.ForeignKey(classA, related_name='classE')  # objA.classE.all()
-
+    class classE(models.Model):
+        m2mto = models.ForeignKey(classA, related_name='classE')  # objA.classE.all()
 
 3. For each associated object, we go back to step 1. and get every field, ...
 
@@ -104,28 +104,29 @@ By default, every model and field is collected, but you can override some parame
 
 - `EXCLUDE_MODELS`: exclude models (expecting a list of '<app_label>.<module_name>')
 
-::
+.. code-block:: python
 
-    >>> EXCLUDE_MODELS = ['sites.site', 'auth.permission', 'auth.group']
+    EXCLUDE_MODELS = ['sites.site', 'auth.permission', 'auth.group']
+
 Every time we will try to collect an object of this model type, it won't be collected.
 
 - `EXCLUDE_DIRECT_FIELDS`: exclude direct fields from specified models
 
-::
+.. code-block:: python
 
-    >>> EXCLUDE_DIRECT_FIELDS = {
-            'auth.user': ['groups'],
-        }
+    EXCLUDE_DIRECT_FIELDS = {
+        'auth.user': ['groups'],
+    }
 
 On User model, when we will get direct fields, we won't take into account 'groups' field.
 
 - `EXCLUDE_RELATED_FIELDS`: exclude related fields from specified models
 
-::
+.. code-block:: python
 
-    >>> EXCLUDE_RELATED_FIELDS = {
-            'auth.user': ['session_set']
-        }
+    EXCLUDE_RELATED_FIELDS = {
+        'auth.user': ['session_set']
+    }
 
 On User model, we don't want to collect sessions that are associated to this user, so we put the exact accessor name we have to use to get these sessions, 'session_set', to exclude them from collection.
 
