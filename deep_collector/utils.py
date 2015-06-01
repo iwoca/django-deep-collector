@@ -121,7 +121,7 @@ class RelatedObjectsCollector(object):
     def clean_by_fields(self, obj, fields, get_field_fn, exclude_list):
         """
         Function used to exclude defined fields from object collect.
-        :param parent: the object we are collecting
+        :param obj: the object we are collecting
         :param fields: every field related to this object (direct or reverse one)
         :param get_field_fn: function used to get accessor for each field
         :param exclude_list: model/fields we have defined to be excluded from collect
@@ -185,11 +185,11 @@ class RelatedObjectsCollector(object):
         return is_excluded_model
 
     def _is_same_type_as_root(self, obj):
-        '''
+        """
         Testing if we try to collect an object of the same type as root.
         This is not really a good sign, because it means that we are going to collect a whole new tree, that will
         maybe collect a new tree, that will...
-        '''
+        """
         if not self.ALLOWS_SAME_TYPE_AS_ROOT_COLLECT:
             obj_model = get_model_from_instance(obj)
             obj_key = get_key_from_instance(obj)
