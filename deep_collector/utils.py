@@ -136,7 +136,7 @@ class RelatedObjectsCollector(object):
             # 1/ it's parent model key is in exclude list keys
             # AND
             # 2/ the field has been defined as excluded for this parent model
-            is_excluded = obj_model in exclude_list.keys() and field_accessor in exclude_list[obj_model]
+            is_excluded = obj_model in exclude_list and field_accessor in exclude_list[obj_model]
 
             if not is_excluded:
                 cleaned_list.append(field)
@@ -164,7 +164,7 @@ class RelatedObjectsCollector(object):
     def _is_already_collected(self, parent, obj):
         new_key = get_key_from_instance(obj)
         parent_key = get_key_from_instance(parent)
-        is_already_collected = new_key in self.collected_objs.keys()
+        is_already_collected = new_key in self.collected_objs
 
         if is_already_collected:
             logger.debug('-' * 100)
@@ -222,7 +222,7 @@ class RelatedObjectsCollector(object):
             key=new_key, parent_key=parent_key))
 
         model = get_model_from_instance(obj)
-        if model in self.collected_objs_history.keys():
+        if model in self.collected_objs_history:
             self.collected_objs_history[model] += 1
         else:
             self.collected_objs_history[model] = 1
@@ -230,34 +230,35 @@ class RelatedObjectsCollector(object):
 
     def collect(self, root_obj):
         # Resetting collected_objs if several collects are called.
+        self.objects_to_collect = [(None, root_obj)]
         self.collected_objs = {}
         self.collected_objs_history = {}
 
         self.root_obj_key = get_key_from_instance(root_obj)
         self.root_obj_model = get_model_from_instance(root_obj)
 
-        self._collect(None, root_obj)
+        while self.objects_to_collect:
+            parent, obj = self.objects_to_collect.pop()
+            children = self._collect(parent, obj)
+            self.objects_to_collect += [(obj, child) for child in children]
+
+    def _collect(self, parent, obj):
+        if self.is_excluded_from_collect(parent, obj):
+            return []
+        obj = self.pre_collect(obj)
+        self.add_to_collected_object(parent, obj)
+
+        # Local objects are explicit fields on current object model
+        local_objs = self.get_local_objs(obj)
+
+        # Related objects are fields defined in other models that can refer to current model
+        related_objs = self.get_related_objs(obj)
+
+        self.post_collect(obj)
+        return local_objs + related_objs
 
     def pre_collect(self, obj):
         return obj
-
-    def _collect(self, parent, obj):
-
-        is_excluded_from_collect = self.is_excluded_from_collect(parent, obj)
-
-        if not is_excluded_from_collect:
-            obj = self.pre_collect(obj)
-            self.add_to_collected_object(parent, obj)
-
-            # Local objects are explicit fields on current object model
-            local_objs = self.get_local_objs(obj)
-
-            # Related objects are fields defined in other models that can refer to current model
-            related_objs = self.get_related_objs(obj)
-            for object_to_collect in local_objs + related_objs:
-                self._collect(obj, object_to_collect)
-
-            self.post_collect(obj)
 
     def post_collect(self, obj):
         """
