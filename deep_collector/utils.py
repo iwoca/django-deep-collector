@@ -117,6 +117,8 @@ class RelatedObjectsCollector(object):
     ALLOWS_SAME_TYPE_AS_ROOT_COLLECT = False
 
     MAXIMUM_RELATED_INSTANCES = 50
+    # We are settings related instances maximum size depending on the model
+    MAXIMUM_RELATED_INSTANCES_PER_MODEL = {}
 
     def clean_by_fields(self, obj, fields, get_field_fn, exclude_list):
         """
@@ -359,6 +361,12 @@ class RelatedObjectsCollector(object):
 
         return related_objs
 
+    def get_maximum_allowed_instances_for_model(self, model):
+        if model in self.MAXIMUM_RELATED_INSTANCES_PER_MODEL:
+            return self.MAXIMUM_RELATED_INSTANCES_PER_MODEL[model]
+
+        return self.MAXIMUM_RELATED_INSTANCES
+
     def query_related_objects(self, related, objs):
         related_objs = []
 
@@ -378,7 +386,7 @@ class RelatedObjectsCollector(object):
             logger.debug('*' * 80)
             logger.debug('*****  Got {nb} related instance(s) for {related} *****'.format(nb=len(related_objs), related=related.name))
             logger.debug('*' * 80)
-            if len(related_objs) > self.MAXIMUM_RELATED_INSTANCES:
+            if len(related_objs) > self.get_maximum_allowed_instances_for_model(get_model_from_instance(related_objs[0])):
                 logger.debug('Too many related objects. Would be irrelevant to introspect...')
                 related_objs = []
         return related_objs

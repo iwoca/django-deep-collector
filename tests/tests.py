@@ -149,6 +149,31 @@ class TestCollectorParameters(TestCase):
         collected_objects = collector.get_collected_objects()
         self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 0)
 
+    def test_parameter_to_avoid_collect_on_specific_model_if_too_many_related_objects(self):
+        obj = BaseModelFactory.create()
+        fkey1 = ForeignKeyToBaseModelFactory(fkeyto=obj)
+        fkey2 = ForeignKeyToBaseModelFactory(fkeyto=obj)
+        fkey3 = ForeignKeyToBaseModelFactory(fkeyto=obj)
+
+        collector = RelatedObjectsCollector()
+        # If model is specified in MAXIMUM_RELATED_INSTANCES_PER_MODEL, we don't take into account
+        # MAXIMUM_RELATED_INSTANCES parameter
+        collector.MAXIMUM_RELATED_INSTANCES = 1
+        collector.MAXIMUM_RELATED_INSTANCES_PER_MODEL = {'tests.foreignkeytobasemodel': 3}
+        collector.collect(obj)
+        collected_objects = collector.get_collected_objects()
+
+        self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 3)
+
+        # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
+        collector = RelatedObjectsCollector()
+        collector.MAXIMUM_RELATED_INSTANCES = 1
+        collector.MAXIMUM_RELATED_INSTANCES_PER_MODEL = {'tests.foreignkeytobasemodel': 2}
+        collector.collect(obj)
+        collected_objects = collector.get_collected_objects()
+
+        self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 0)
+
 
 class TestMultiModelInheritanceSerializer(TestCase):
 
