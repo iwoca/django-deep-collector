@@ -302,6 +302,12 @@ class RelatedObjectsCollector(object):
         return self.clean_by_fields(obj, concrete_model._meta.local_many_to_many,
                           lambda x: x.name, self.EXCLUDE_DIRECT_FIELDS)
 
+    def get_maximum_allowed_instances_for_model(self, model):
+        if model in self.MAXIMUM_RELATED_INSTANCES_PER_MODEL:
+            return self.MAXIMUM_RELATED_INSTANCES_PER_MODEL[model]
+
+        return self.MAXIMUM_RELATED_INSTANCES
+
     def get_local_objs(self, obj):
         local_objs = []
 
@@ -333,7 +339,7 @@ class RelatedObjectsCollector(object):
                     nb=objs_count, related=field.name))
                 logger.debug('*' * 80)
 
-                if objs_count > self.MAXIMUM_RELATED_INSTANCES:
+                if objs_count > self.get_maximum_allowed_instances_for_model(get_model_from_instance(obj)):
                     logger.debug('Too many related objects. Would be irrelevant to introspect...')
                 else:
                     local_objs += m2m_manager.all()
@@ -360,12 +366,6 @@ class RelatedObjectsCollector(object):
             related_objs += self.query_related_objects(related_field, [obj])
 
         return related_objs
-
-    def get_maximum_allowed_instances_for_model(self, model):
-        if model in self.MAXIMUM_RELATED_INSTANCES_PER_MODEL:
-            return self.MAXIMUM_RELATED_INSTANCES_PER_MODEL[model]
-
-        return self.MAXIMUM_RELATED_INSTANCES
 
     def query_related_objects(self, related, objs):
         related_objs = []
