@@ -234,6 +234,7 @@ class RelatedObjectsCollector(object):
         self.collected_objs = {}
         self.collected_objs_history = {}
 
+        self.root_obj = root_obj
         self.root_obj_key = get_key_from_instance(root_obj)
         self.root_obj_model = get_model_from_instance(root_obj)
 
@@ -278,13 +279,11 @@ class RelatedObjectsCollector(object):
         """
         if not self.ALLOWS_SAME_TYPE_AS_ROOT_COLLECT:
             for field in self.get_local_fields(obj):
-                if isinstance(field, ForeignKey) and not field.unique:
-                    instance = getattr(obj, field.name)
-                    root_id = self.root_obj_key.split('.')[2]
-
-                    if get_model_from_instance(instance) == self.root_obj_model and instance.id != root_id:
-                        root_django_model = type(instance)
-                        setattr(obj, field.name, root_django_model.objects.get(id=root_id))
+                if not isinstance(field, ForeignKey) or field.unique or field.rel.to != type(self.root_obj):
+                    continue
+                instance_id = getattr(obj, field.name + '_id')
+                if instance_id != self.root_obj.id:
+                    setattr(obj, field.name, self.root_obj)
 
     def get_local_fields(self, obj):
         # Use the concrete parent class' _meta instead of the object's _meta
