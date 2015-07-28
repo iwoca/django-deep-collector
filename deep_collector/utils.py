@@ -279,10 +279,7 @@ class RelatedObjectsCollector(object):
         """
         if not self.ALLOWS_SAME_TYPE_AS_ROOT_COLLECT:
             for field in self.get_local_fields(obj):
-                if not isinstance(field, ForeignKey) or field.unique or field.rel.to != type(self.root_obj):
-                    continue
-                instance_id = getattr(obj, field.name + '_id')
-                if instance_id != self.root_obj.id:
+                if isinstance(field, ForeignKey) and not field.unique and field.rel.to == type(self.root_obj):
                     setattr(obj, field.name, self.root_obj)
 
     def get_local_fields(self, obj):
