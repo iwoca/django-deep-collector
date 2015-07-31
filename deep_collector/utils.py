@@ -394,7 +394,7 @@ class RelatedObjectsCollector(object):
 
 def get_model_from_instance(obj):
     if obj is None:
-        return '<root>'
+        return '<null_model>'
 
     try:
         meta = obj._meta
@@ -409,5 +409,5 @@ def get_model_from_instance(obj):
 
 def get_key_from_instance(obj):
     if obj is None:
-        return '<root>'
+        return '<null_id>'
     return get_model_from_instance(obj) + '.' + str(obj.pk)
