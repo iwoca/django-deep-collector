@@ -7,7 +7,7 @@ from .factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
                         ManyToManyToBaseModelWithRelatedNameFactory, ChildModelFactory)
 from deep_collector.serializers import MultiModelInheritanceSerializer
 from deep_collector.utils import RelatedObjectsCollector
-from .models import ForeignKeyToBaseModel
+from .models import ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel
 
 
 class TestDirectRelations(TestCase):
@@ -202,3 +202,36 @@ class TestMultiModelInheritanceSerializer(TestCase):
 
         self.assertEqual(local_fields_before, local_fields_after)
         self.assertEqual(local_m2m_fields_before, local_m2m_fields_after)
+
+
+class TestPostCollect(TestCase):
+    @staticmethod
+    def _generate_invalid_id(model):
+        instance = model.objects.create()
+        invalid_id = instance.id
+        instance.delete()
+        return invalid_id
+
+    def test_invalid_foreign_key_doesnt_cause_matching_query_does_not_exist_exception(self):
+        root = InvalidFKRootModel.objects.create()
+        non_root = InvalidFKNonRootModel.objects.create()
+
+        root.invalid_fk_id = self._generate_invalid_id(InvalidFKNonRootModel)
+        root.valid_fk = non_root
+        root.save()
+
+        non_root.invalid_fk_id = self._generate_invalid_id(InvalidFKRootModel)
+        non_root.valid_fk = root
+        non_root.save()
+
+        # when post_collect() is executed on the InvalidFKRootModel instance
+        # this invalid foreign key shouldn't cause an error like:
+        # "DoesNotExist: InvalidFKRootModel matching query does not exist."
+        # OR
+        # "DoesNotExist: InvalidFKNonRootModel matching query does not exist."
+
+        collector = RelatedObjectsCollector()
+        collector.collect(root)
+
+        self.assertIn(root, collector.get_collected_objects())
+        self.assertIn(non_root, collector.get_collected_objects())

@@ -53,3 +53,13 @@ class ClassLevel3(models.Model):
 
 class ChildModel(BaseModel):
     child_field = models.CharField(max_length=255)
+
+
+class InvalidFKRootModel(models.Model):
+    valid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='valid_non_root_fk', null=True)
+    invalid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='invalid_non_root_fk', null=True)
+
+
+class InvalidFKNonRootModel(models.Model):
+    valid_fk = models.ForeignKey(InvalidFKRootModel, related_name='valid_root_fk', null=True)
+    invalid_fk = models.ForeignKey(InvalidFKRootModel, related_name='invalid_root_fk', null=True)

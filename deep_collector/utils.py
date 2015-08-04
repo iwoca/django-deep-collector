@@ -123,7 +123,7 @@ class RelatedObjectsCollector(object):
     def clean_by_fields(self, obj, fields, get_field_fn, exclude_list):
         """
         Function used to exclude defined fields from object collect.
-        :param parent: the object we are collecting
+        :param obj: the object we are collecting
         :param fields: every field related to this object (direct or reverse one)
         :param get_field_fn: function used to get accessor for each field
         :param exclude_list: model/fields we have defined to be excluded from collect
@@ -187,11 +187,11 @@ class RelatedObjectsCollector(object):
         return is_excluded_model
 
     def _is_same_type_as_root(self, obj):
-        '''
+        """
         Testing if we try to collect an object of the same type as root.
         This is not really a good sign, because it means that we are going to collect a whole new tree, that will
         maybe collect a new tree, that will...
-        '''
+        """
         if not self.ALLOWS_SAME_TYPE_AS_ROOT_COLLECT:
             obj_model = get_model_from_instance(obj)
             obj_key = get_key_from_instance(obj)
@@ -236,6 +236,7 @@ class RelatedObjectsCollector(object):
         self.collected_objs = {}
         self.collected_objs_history = {}
 
+        self.root_obj = root_obj
         self.root_obj_key = get_key_from_instance(root_obj)
         self.root_obj_model = get_model_from_instance(root_obj)
 
@@ -280,13 +281,8 @@ class RelatedObjectsCollector(object):
         """
         if not self.ALLOWS_SAME_TYPE_AS_ROOT_COLLECT:
             for field in self.get_local_fields(obj):
-                if isinstance(field, ForeignKey) and not field.unique:
-                    instance = getattr(obj, field.name)
-                    root_id = self.root_obj_key.split('.')[2]
-
-                    if get_model_from_instance(instance) == self.root_obj_model and instance.id != root_id:
-                        root_django_model = type(instance)
-                        setattr(obj, field.name, root_django_model.objects.get(id=root_id))
+                if isinstance(field, ForeignKey) and not field.unique and field.rel.to == type(self.root_obj):
+                    setattr(obj, field.name, self.root_obj)
 
     def get_local_fields(self, obj):
         # Use the concrete parent class' _meta instead of the object's _meta
