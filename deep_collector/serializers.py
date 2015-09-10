@@ -1,7 +1,6 @@
 
-from StringIO import StringIO
 from django.core.serializers.json import Serializer
-
+from django.utils import six
 
 
 class CustomizableLocalFieldsSerializer(Serializer):
@@ -15,11 +14,12 @@ class CustomizableLocalFieldsSerializer(Serializer):
     def serialize(self, queryset, **options):
         self.options = options
 
-        self.stream = options.pop("stream", StringIO())
+        self.stream = options.pop("stream", six.StringIO())
         self.selected_fields = options.pop("fields", None)
         self.use_natural_keys = options.pop("use_natural_keys", False)
 
         self.start_serialization()
+        self.first = True
         for obj in queryset:
             self.start_object(obj)
             # Use the concrete parent class' _meta instead of the object's _meta
@@ -38,6 +38,8 @@ class CustomizableLocalFieldsSerializer(Serializer):
                     if self.selected_fields is None or field.attname in self.selected_fields:
                         self.handle_m2m_field(obj, field)
             self.end_object(obj)
+            if self.first:
+                self.first = False
         self.end_serialization()
         return self.getvalue()
 
