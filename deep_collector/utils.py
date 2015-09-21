@@ -335,7 +335,7 @@ class RelatedObjectsCollector(object):
                     nb=objs_count, related=field.name))
                 logger.debug('*' * 80)
 
-                if objs_count > self.get_maximum_allowed_instances_for_model(get_model_from_instance(obj)):
+                if objs_count > self.get_maximum_allowed_instances_for_model(get_model_from_instance(m2m_manager.model)):
                     logger.debug('Too many related objects. Would be irrelevant to introspect...')
                 else:
                     local_objs += m2m_manager.all()
