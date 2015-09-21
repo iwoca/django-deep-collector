@@ -142,12 +142,22 @@ class TestCollectorParameters(TestCase):
         collected_objects = collector.get_collected_objects()
 
         self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 3)
+        self.assertEquals(len(collector.get_report()['excluded_fields']), 0)
 
         # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
         collector.MAXIMUM_RELATED_INSTANCES = 2
         collector.collect(obj)
         collected_objects = collector.get_collected_objects()
         self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 0)
+
+        self.assertEquals(len(collector.get_report()['excluded_fields']), 1)
+        self.assertDictEqual({
+            'parent_instance': u'tests.basemodel.%s' % obj.pk,
+            'field_name': u'foreignkeytobasemodel_set',
+            'related_model': u'tests.foreignkeytobasemodel',
+            'count': 3,
+            'max_count': 2,
+        }, collector.get_report()['excluded_fields'][0])
 
     def test_parameter_to_avoid_collect_on_specific_model_if_too_many_related_objects(self):
         obj = BaseModelFactory.create()
@@ -164,6 +174,7 @@ class TestCollectorParameters(TestCase):
         collected_objects = collector.get_collected_objects()
 
         self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 3)
+        self.assertEquals(len(collector.get_report()['excluded_fields']), 0)
 
         # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
         collector = RelatedObjectsCollector()
@@ -173,6 +184,15 @@ class TestCollectorParameters(TestCase):
         collected_objects = collector.get_collected_objects()
 
         self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 0)
+
+        self.assertEquals(len(collector.get_report()['excluded_fields']), 1)
+        self.assertDictEqual({
+            'parent_instance': u'tests.basemodel.%s' % obj.pk,
+            'field_name': u'foreignkeytobasemodel_set',
+            'related_model': u'tests.foreignkeytobasemodel',
+            'count': 3,
+            'max_count': 2,
+        }, collector.get_report()['excluded_fields'][0])
 
     def test_parameter_to_avoid_collect_if_too_many_related_objects_through_many_to_many_field(self):
         obj1 = BaseModelFactory.create()
@@ -186,12 +206,22 @@ class TestCollectorParameters(TestCase):
         collected_objects = collector.get_collected_objects()
 
         self.assertEquals(len([x for x in collected_objects if isinstance(x, BaseModel)]), 3)
+        self.assertEquals(len(collector.get_report()['excluded_fields']), 0)
 
         # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
         collector.MAXIMUM_RELATED_INSTANCES = 2
         collector.collect(root_obj)
         collected_objects = collector.get_collected_objects()
         self.assertEquals(len([x for x in collected_objects if isinstance(x, BaseModel)]), 0)
+
+        self.assertEquals(len(collector.get_report()['excluded_fields']), 1)
+        self.assertDictEqual({
+            'parent_instance': u'tests.manytomanytobasemodel.%s' % root_obj.pk,
+            'field_name': u'm2m',
+            'related_model': u'tests.basemodel',
+            'count': 3,
+            'max_count': 2,
+        }, collector.get_report()['excluded_fields'][0])
 
     def test_parameter_to_avoid_collect_on_specific_model_if_too_many_related_objects_through_many_to_many_field(self):
         obj1 = BaseModelFactory.create()
@@ -206,6 +236,7 @@ class TestCollectorParameters(TestCase):
         collected_objects = collector.get_collected_objects()
 
         self.assertEquals(len([x for x in collected_objects if isinstance(x, BaseModel)]), 3)
+        self.assertEquals(len(collector.get_report()['excluded_fields']), 0)
 
         # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
         collector.MAXIMUM_RELATED_INSTANCES = 1
@@ -213,6 +244,15 @@ class TestCollectorParameters(TestCase):
         collector.collect(root_obj)
         collected_objects = collector.get_collected_objects()
         self.assertEquals(len([x for x in collected_objects if isinstance(x, BaseModel)]), 0)
+
+        self.assertEquals(len(collector.get_report()['excluded_fields']), 1)
+        self.assertDictEqual({
+            'parent_instance': u'tests.manytomanytobasemodel.%s' % root_obj.pk,
+            'field_name': u'm2m',
+            'related_model': u'tests.basemodel',
+            'count': 3,
+            'max_count': 2,
+        }, collector.get_report()['excluded_fields'][0])
 
 
 class TestMultiModelInheritanceSerializer(TestCase):
