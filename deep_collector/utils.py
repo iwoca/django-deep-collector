@@ -145,6 +145,12 @@ class RelatedObjectsCollector(object):
 
         return cleaned_list
 
+    def get_report(self):
+        return {
+            'excluded_fields': self.excluded_fields,
+            'log': self.saved_log,
+        }
+
     def get_collected_objects(self):
         return self.collected_objs.values()
 
@@ -163,14 +169,23 @@ class RelatedObjectsCollector(object):
 
         return string_buffer
 
+    def debug_log(self, msg, *args, **kwargs):
+        logger.debug(msg, *args, **kwargs)
+
+        if args:
+            msg = msg % args
+        elif not isinstance(msg, (str, unicode)):
+            msg = str(msg)
+        self.saved_log.append(msg)
+
     def _is_already_collected(self, parent, obj):
         new_key = get_key_from_instance(obj)
         parent_key = get_key_from_instance(parent)
         is_already_collected = new_key in self.collected_objs
 
         if is_already_collected:
-            logger.debug('-' * 100)
-            logger.debug('Collecting >>> {key} <<< (from {parent_key}) : NOK (already collected)'.format(
+            self.debug_log('-' * 100)
+            self.debug_log('Collecting >>> {key} <<< (from {parent_key}) : NOK (already collected)'.format(
                 key=new_key, parent_key=parent_key))
 
         return is_already_collected
@@ -181,8 +196,8 @@ class RelatedObjectsCollector(object):
         is_excluded_model = obj_model in self.EXCLUDE_MODELS
 
         if is_excluded_model:
-            logger.debug('-' * 100)
-            logger.debug('Not Collecting {key} (excluded model)'.format(key=obj_key))
+            self.debug_log('-' * 100)
+            self.debug_log('Not Collecting {key} (excluded model)'.format(key=obj_key))
 
         return is_excluded_model
 
@@ -198,7 +213,7 @@ class RelatedObjectsCollector(object):
             is_same_type_as_root = obj_model == self.root_obj_model and obj_key != self.root_obj_key
 
             if is_same_type_as_root:
-                logger.debug('*********** WARNING NEW {obj_model} obj : {obj_key} ***************'.format(
+                self.debug_log('*********** WARNING NEW {obj_model} obj : {obj_key} ***************'.format(
                      obj_model=obj_model, obj_key=obj_key
                 ))
             return is_same_type_as_root
@@ -219,8 +234,8 @@ class RelatedObjectsCollector(object):
 
         self.collected_objs[new_key] = obj
 
-        logger.debug('-' * 100)
-        logger.debug('Collecting >>> {key} <<< (from {parent_key}) : OK'.format(
+        self.debug_log('-' * 100)
+        self.debug_log('Collecting >>> {key} <<< (from {parent_key}) : OK'.format(
             key=new_key, parent_key=parent_key))
 
         model = get_model_from_instance(obj)
@@ -228,7 +243,7 @@ class RelatedObjectsCollector(object):
             self.collected_objs_history[model] += 1
         else:
             self.collected_objs_history[model] = 1
-        logger.debug(self.collected_objs_history)
+        self.debug_log(self.collected_objs_history)
 
     def collect(self, root_obj):
         # Resetting collected_objs if several collects are called.
@@ -240,10 +255,22 @@ class RelatedObjectsCollector(object):
         self.root_obj_key = get_key_from_instance(root_obj)
         self.root_obj_model = get_model_from_instance(root_obj)
 
+        self.excluded_fields = []
+        self.saved_log = []
+
         while self.objects_to_collect:
             parent, obj = self.objects_to_collect.pop()
             children = self._collect(parent, obj)
             self.objects_to_collect += [(obj, child) for child in children]
+
+    def add_excluded_field(self, parent_instance_key, field_name, related_model_name, count, max_count):
+        self.excluded_fields.append({
+            'parent_instance': parent_instance_key,
+            'field_name': field_name,
+            'related_model': related_model_name,
+            'count': count,
+            'max_count': max_count,
+        })
 
     def _collect(self, parent, obj):
         if self.is_excluded_from_collect(parent, obj):
@@ -309,34 +336,38 @@ class RelatedObjectsCollector(object):
 
         for field in self.get_local_fields(obj):
             if isinstance(field, ForeignKey):
-                logger.debug('+ local field : ' + field.name)
+                self.debug_log('+ local field : ' + field.name)
                 try:
                     instance = getattr(obj, field.name)
                     if instance:
-                        logger.debug('*' * 80)
-                        logger.debug('***** Direct instance for ' + field.name + ' *****')
-                        logger.debug('*' * 80)
+                        self.debug_log('*' * 80)
+                        self.debug_log('***** Direct instance for ' + field.name + ' *****')
+                        self.debug_log('*' * 80)
                         local_objs.append(instance)
                     else:
-                        logger.debug('-- No direct instance for ' + field.name)
+                        self.debug_log('-- No direct instance for ' + field.name)
                 except Exception as e:
-                    logger.debug('-- No direct instance for ' + field.name)
+                    self.debug_log('-- No direct instance for ' + field.name)
 
         for field in self.get_local_m2m_fields(obj):
-            logger.debug('+ local m2m field : ' + field.name)
+            self.debug_log('+ local m2m field : ' + field.name)
             m2m_manager = getattr(obj, field.name)
             objs_count = m2m_manager.count()
 
             if not objs_count:
-                logger.debug('-- No direct instances for ' + field.name)
+                self.debug_log('-- No direct instances for ' + field.name)
             else:
-                logger.debug('*' * 80)
-                logger.debug('*****  Got {nb} direct instance(s) for {related} *****'.format(
+                self.debug_log('*' * 80)
+                self.debug_log('*****  Got {nb} direct instance(s) for {related} *****'.format(
                     nb=objs_count, related=field.name))
-                logger.debug('*' * 80)
+                self.debug_log('*' * 80)
 
-                if objs_count > self.get_maximum_allowed_instances_for_model(get_model_from_instance(m2m_manager.model)):
-                    logger.debug('Too many related objects. Would be irrelevant to introspect...')
+                related_model_name = get_model_from_instance(m2m_manager.model)
+                max_count = self.get_maximum_allowed_instances_for_model(related_model_name)
+                if objs_count > max_count:
+                    self.debug_log('Too many related objects. Would be irrelevant to introspect...')
+                    self.add_excluded_field(get_key_from_instance(obj), field.name,
+                                            related_model_name, objs_count, max_count)
                 else:
                     local_objs += m2m_manager.all()
 
@@ -354,11 +385,11 @@ class RelatedObjectsCollector(object):
         related_objs = []
 
         for related_field in self.get_related_fields(obj):
-            logger.debug('+ related field : ' + related_field.get_accessor_name() + ' (' + related_field.name + ')')
+            self.debug_log('+ related field : ' + related_field.get_accessor_name() + ' (' + related_field.name + ')')
             related_objs += self.query_related_objects(related_field, [obj])
 
         for related_field, _ in self.get_related_m2m_fields(obj):
-            logger.debug('+ related m2m field : ' + related_field.get_accessor_name() + ' (' + related_field.name + ')')
+            self.debug_log('+ related m2m field : ' + related_field.get_accessor_name() + ' (' + related_field.name + ')')
             related_objs += self.query_related_objects(related_field, [obj])
 
         return related_objs
@@ -374,16 +405,20 @@ class RelatedObjectsCollector(object):
             else:
                 related_objs = list(related_obj_or_manager.all())
         except Exception as e:
-            logger.debug('Exception while getting related objects: %s', str(e))
+            self.debug_log('Exception while getting related objects: %s', str(e))
 
         if not related_objs:
-            logger.debug('-- No related instances for ' + related.name)
+            self.debug_log('-- No related instances for ' + related.name)
         else:
-            logger.debug('*' * 80)
-            logger.debug('*****  Got {nb} related instance(s) for {related} *****'.format(nb=len(related_objs), related=related.name))
-            logger.debug('*' * 80)
-            if len(related_objs) > self.get_maximum_allowed_instances_for_model(get_model_from_instance(related_objs[0])):
-                logger.debug('Too many related objects. Would be irrelevant to introspect...')
+            self.debug_log('*' * 80)
+            self.debug_log('*****  Got {nb} related instance(s) for {related} *****'.format(nb=len(related_objs), related=related.name))
+            self.debug_log('*' * 80)
+            related_model_name = get_model_from_instance(related_objs[0])
+            max_count = self.get_maximum_allowed_instances_for_model(related_model_name)
+            if len(related_objs) > max_count:
+                self.debug_log('Too many related objects. Would be irrelevant to introspect...')
+                self.add_excluded_field(get_key_from_instance(objs[0]), related.get_accessor_name(),
+                                        related_model_name, len(related_objs), max_count)
                 related_objs = []
         return related_objs
 
