@@ -7,7 +7,7 @@ from .factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
                         ManyToManyToBaseModelWithRelatedNameFactory, ChildModelFactory)
 from deep_collector.serializers import MultiModelInheritanceSerializer
 from deep_collector.utils import RelatedObjectsCollector
-from .models import ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel
+from .models import ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel, BaseModel
 
 
 class TestDirectRelations(TestCase):
@@ -173,6 +173,46 @@ class TestCollectorParameters(TestCase):
         collected_objects = collector.get_collected_objects()
 
         self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 0)
+
+    def test_parameter_to_avoid_collect_if_too_many_related_objects_through_many_to_many_field(self):
+        obj1 = BaseModelFactory.create()
+        obj2 = BaseModelFactory.create()
+        obj3 = BaseModelFactory.create()
+        root_obj = ManyToManyToBaseModelFactory.create(base_models=[obj1, obj2, obj3])
+
+        collector = RelatedObjectsCollector()
+        collector.MAXIMUM_RELATED_INSTANCES = 3
+        collector.collect(root_obj)
+        collected_objects = collector.get_collected_objects()
+
+        self.assertEquals(len([x for x in collected_objects if isinstance(x, BaseModel)]), 3)
+
+        # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
+        collector.MAXIMUM_RELATED_INSTANCES = 2
+        collector.collect(root_obj)
+        collected_objects = collector.get_collected_objects()
+        self.assertEquals(len([x for x in collected_objects if isinstance(x, BaseModel)]), 0)
+
+    def test_parameter_to_avoid_collect_on_specific_model_if_too_many_related_objects_through_many_to_many_field(self):
+        obj1 = BaseModelFactory.create()
+        obj2 = BaseModelFactory.create()
+        obj3 = BaseModelFactory.create()
+        root_obj = ManyToManyToBaseModelFactory.create(base_models=[obj1, obj2, obj3])
+
+        collector = RelatedObjectsCollector()
+        collector.MAXIMUM_RELATED_INSTANCES = 1
+        collector.MAXIMUM_RELATED_INSTANCES_PER_MODEL = {'tests.basemodel': 3}
+        collector.collect(root_obj)
+        collected_objects = collector.get_collected_objects()
+
+        self.assertEquals(len([x for x in collected_objects if isinstance(x, BaseModel)]), 3)
+
+        # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
+        collector.MAXIMUM_RELATED_INSTANCES = 1
+        collector.MAXIMUM_RELATED_INSTANCES_PER_MODEL = {'tests.basemodel': 2}
+        collector.collect(root_obj)
+        collected_objects = collector.get_collected_objects()
+        self.assertEquals(len([x for x in collected_objects if isinstance(x, BaseModel)]), 0)
 
 
 class TestMultiModelInheritanceSerializer(TestCase):
