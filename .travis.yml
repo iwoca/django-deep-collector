@@ -5,6 +5,8 @@ python:
 
 env:
   - TOXENV=django14
+  - TOXENV=django15
+  - TOXENV=django16
 
 script:
   - tox
