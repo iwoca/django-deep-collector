@@ -20,7 +20,7 @@ deploy:
   provider: pypi
   user: iwoca
   password:
-    secure: thHbKk8nvBJzM2QwTMnQFFHk93riUt7fnOwH8DgEe2yG8yKvI0yzZ+Kp6ffkt80gLAGW9Na6B7MzBwnG4cqK6KMGHASgpWfRVTLqHDKv1zNcivTjJa2dabpzAyF8uIwBdp3/sy14bwV7ZiVmm1i1m/Ku45dwTe32qoiPw+b1pRw=
+    secure: KNgZPIZ8xv1sC5i8/NiNuUFe5Daae5iM4dz7tbAStxTvJ8W793ybxaIKL9EIFefAHwi7R9prqH+VBt2cu+td6x23OZyfbi3Ci6bpBmKjBCCPr6itMBNjuHOepvBIUWiBcewrQ6seeEdigKzKu53b5VS4zUT6mWOlwnOJV4RO4YY=
   on:
     tags: true
-    branch: master
+    all_branches: true
