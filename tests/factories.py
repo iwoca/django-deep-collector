@@ -1,6 +1,5 @@
 import factory
 
-from django.conf import settings
 
 from .models import (FKDummyModel, O2ODummyModel, BaseModel, ManyToManyToBaseModel,
     ForeignKeyToBaseModel, OneToOneToBaseModel, ClassLevel1, ClassLevel2, ClassLevel3,
