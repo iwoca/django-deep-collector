@@ -1,6 +1,7 @@
-
+import warnings
 from django.core.serializers.json import Serializer
 from django.utils import six
+from django.utils.deprecation import RemovedInDjango19Warning
 
 
 class CustomizableLocalFieldsSerializer(Serializer):
@@ -11,12 +12,24 @@ class CustomizableLocalFieldsSerializer(Serializer):
     We had to redefine serialize() method to add the possibility to subclass methods that are getting local
     fields to serialize (get_local_fields and get_local_m2m_fields)
     """
+    # Indicates if the implemented serializer is only available for
+    # internal Django use.
+    internal_use_only = False
+
     def serialize(self, queryset, **options):
+        """
+        Serialize a queryset.
+        """
         self.options = options
 
         self.stream = options.pop("stream", six.StringIO())
         self.selected_fields = options.pop("fields", None)
         self.use_natural_keys = options.pop("use_natural_keys", False)
+        if self.use_natural_keys:
+            warnings.warn("``use_natural_keys`` is deprecated; use ``use_natural_foreign_keys`` instead.",
+                RemovedInDjango19Warning)
+        self.use_natural_foreign_keys = options.pop('use_natural_foreign_keys', False) or self.use_natural_keys
+        self.use_natural_primary_keys = options.pop('use_natural_primary_keys', False)
 
         self.start_serialization()
         self.first = True
@@ -48,43 +61,3 @@ class CustomizableLocalFieldsSerializer(Serializer):
 
     def get_local_m2m_fields(self, concrete_model):
         return concrete_model._meta.many_to_many
-
-
-class MultiModelInheritanceSerializer(CustomizableLocalFieldsSerializer):
-    '''
-    This serializer aims to fix serialization for multi-model inheritance
-    This functionality has been removed because considered as too much "agressive"
-    More precisions on this commit: https://github.com/django/django/commit/12716794db
-
-    '''
-    def get_local_fields(self, concrete_model):
-        local_fields = super(MultiModelInheritanceSerializer, self).get_local_fields(concrete_model)
-        return local_fields + self.parent_local_fields
-
-    def get_local_m2m_fields(self, concrete_model):
-        local_m2m_fields = super(MultiModelInheritanceSerializer, self).get_local_m2m_fields(concrete_model)
-        return local_m2m_fields + self.parent_local_m2m_fields
-
-    def start_object(self, obj):
-        # Initializing local fields we want to add current object (will be parent local fields)
-        self.parent_local_fields = []
-        self.parent_local_m2m_fields = []
-
-        # Recursively getting parent fields to be added to serialization
-        # We use concrete_model to avoid problems if we have to deal with proxy models
-        concrete_model = obj._meta.concrete_model
-        self.collect_parent_fields(concrete_model)
-
-        super(Serializer, self).start_object(obj)
-
-    def collect_parent_fields(self, model):
-        # Collect parent fields that are not collected by default on non-abstract models. We call it recursively
-        # to manage parents of parents, ...
-        parents = model._meta.parents
-        parents_to_collect = [parent for parent, parent_ptr in parents.iteritems() if not parent._meta.abstract]
-
-        for parent in parents_to_collect:
-            self.parent_local_fields += parent._meta.local_fields
-            self.parent_local_m2m_fields += parent._meta.local_many_to_many
-
-            self.collect_parent_fields(parent._meta.concrete_model)
