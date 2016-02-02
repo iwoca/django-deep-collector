@@ -1,4 +1,5 @@
-# Minimum files that are needed to run django test suite
+import django
+
 
 SECRET_KEY = 'WE DONT CARE ABOUT IT'
 
@@ -15,4 +16,8 @@ DATABASES = {
 
 INSTALLED_APPS = ('tests', )
 
-DEEP_COLLECTOR_LAUNCH_TESTS = True
+
+# Using DiscoverRunner before Django 1.6 to be able to use test files with 'test*' pattern name
+if django.VERSION < (1, 6):
+    INSTALLED_APPS += ('discover_runner', )
+    TEST_RUNNER = 'discover_runner.DiscoverRunner'
