@@ -14,7 +14,7 @@ Create a new instance of RelatedObjectsCollector, and launch collector on one ob
 
 .. code-block:: python
 
-    from deep_collector import RelatedObjectsCollector
+    from deep_collector.core import RelatedObjectsCollector
     from django.contrib.auth.models import User
 
     user = User.objects.all()[0]

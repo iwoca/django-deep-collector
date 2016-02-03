@@ -3,7 +3,7 @@ import logging
 
 from django.db.models import ForeignKey, OneToOneField
 
-from deep_collector.compat.serializers import MultiModelInheritanceSerializer
+from .compat.serializers import MultiModelInheritanceSerializer
 
 
 logger = logging.getLogger(__name__)
