@@ -1,6 +1,18 @@
 ChangeLog
 =========
 
+
+.. _v0.2:
+
+0.2 (2016-02-02)
+------------------
+
+*New:*
+
+    - Adding new ``compat`` module.
+    - Now compatible with Django 1.7.x.
+
+
 .. _v0.1.1:
 
 0.1.1 (2015-09-23)
