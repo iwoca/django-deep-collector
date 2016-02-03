@@ -2,6 +2,16 @@ ChangeLog
 =========
 
 
+.. _v0.2.1:
+
+0.2.1 (2016-02-03)
+------------------
+
+*bugfix:*
+
+    - Fixing MANIFEST.in to include ``compat`` module, not added in distribution version (packaging was broken).
+
+
 .. _v0.2:
 
 0.2 (2016-02-02)
