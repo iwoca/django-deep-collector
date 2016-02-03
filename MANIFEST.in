@@ -1,4 +1,4 @@
 include LICENSE
 include README.rst
 include ChangeLog.rst
-recursive-include compat *
+recursive-include deep_collector/compat *
