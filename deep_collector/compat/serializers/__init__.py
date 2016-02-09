@@ -39,7 +39,7 @@ class MultiModelInheritanceSerializer(CustomizableLocalFieldsSerializer):
         # Collect parent fields that are not collected by default on non-abstract models. We call it recursively
         # to manage parents of parents, ...
         parents = model._meta.parents
-        parents_to_collect = [parent for parent, parent_ptr in parents.iteritems() if not parent._meta.abstract]
+        parents_to_collect = [parent for parent, parent_ptr in parents.items() if not parent._meta.abstract]
 
         for parent in parents_to_collect:
             self.parent_local_fields += parent._meta.local_fields

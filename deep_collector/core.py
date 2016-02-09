@@ -1,8 +1,9 @@
-from cStringIO import StringIO
+
 import logging
 
 from django.db.models import ForeignKey, OneToOneField
 
+from .compat.builtins import basestring, StringIO
 from .compat.serializers import MultiModelInheritanceSerializer
 
 
@@ -174,7 +175,7 @@ class RelatedObjectsCollector(object):
 
         if args:
             msg = msg % args
-        elif not isinstance(msg, (str, unicode)):
+        elif not isinstance(msg, basestring):
             msg = str(msg)
         self.saved_log.append(msg)
 
