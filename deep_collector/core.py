@@ -3,7 +3,7 @@ import logging
 
 from django.db.models import ForeignKey, OneToOneField
 
-from .compat.builtins import StringIO
+from .compat.builtins import basestring, StringIO
 from .compat.serializers import MultiModelInheritanceSerializer
 
 
