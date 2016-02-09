@@ -2,7 +2,7 @@ language: python
 
 python:
   - 2.7
-  - 3.5
+  - 3.4
 
 env:
   - TOXENV=django14
@@ -12,7 +12,7 @@ env:
 
 matrix:
   exclude:
-    - python: 3.5
+    - python: 3.4
       env: TOXENV=django14
 
 script:
