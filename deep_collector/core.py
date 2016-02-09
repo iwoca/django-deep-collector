@@ -261,7 +261,7 @@ class RelatedObjectsCollector(object):
         while self.objects_to_collect:
             parent, obj = self.objects_to_collect.pop()
             children = self._collect(parent, obj)
-            self.objects_to_collect += [(obj, child) for child in children]
+            self.objects_to_collect += [(obj, child) for child in children if child is not None]
 
     def add_excluded_field(self, parent_instance_key, field_name, related_model_name, count, max_count):
         self.excluded_fields.append({
