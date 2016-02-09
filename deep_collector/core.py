@@ -1,8 +1,9 @@
-from cStringIO import StringIO
+
 import logging
 
 from django.db.models import ForeignKey, OneToOneField
 
+from .compat.builtins import StringIO
 from .compat.serializers import MultiModelInheritanceSerializer
 
 
