@@ -262,7 +262,14 @@ class RelatedObjectsCollector(object):
         while self.objects_to_collect:
             parent, obj = self.objects_to_collect.pop()
             children = self._collect(parent, obj)
-            self.objects_to_collect += [(obj, child) for child in children if child is not None]
+
+            tmp_objects_to_collect = []
+            for child in children:
+                if child:
+                    tmp_objects_to_collect.append((obj, child))
+                else:
+                    self.debug_log('Parent {parent} has a None child.'.format(parent=get_key_from_instance(obj)))
+            self.objects_to_collect += tmp_objects_to_collect
 
     def add_excluded_field(self, parent_instance_key, field_name, related_model_name, count, max_count):
         self.excluded_fields.append({
