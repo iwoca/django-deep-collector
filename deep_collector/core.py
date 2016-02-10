@@ -425,18 +425,21 @@ class RelatedObjectsCollector(object):
 
 
 def get_model_from_instance(obj):
-    model = '<root>'
-    if obj:
-        try:
-            model = obj._meta.app_label + '.' + obj._meta.module_name
-        except AttributeError:
-            model = obj.model._meta.app_label + '.' + obj.model._meta.module_name
+    if obj is None:
+        return '<null_model>'
 
+    try:
+        meta = obj._meta
+    except AttributeError:
+        meta = obj.model._meta
+
+    # in django 1.8 _meta.module_name was renamed to _meta.model_name
+    model_name = meta.model_name if hasattr(meta, 'model_name') else meta.module_name
+    model = meta.app_label + '.' + model_name
     return model
 
-def get_key_from_instance(obj):
-    key = get_model_from_instance(obj)
-    if obj:
-        key += '.' + str(obj.pk)
 
-    return key
+def get_key_from_instance(obj):
+    if obj is None:
+        return '<null_id>'
+    return get_model_from_instance(obj) + '.' + str(obj.pk)
