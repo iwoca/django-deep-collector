@@ -20,7 +20,8 @@ class MultiModelInheritanceSerializer(CustomizableLocalFieldsSerializer):
         return local_fields + self.parent_local_fields
 
     def get_local_m2m_fields(self, concrete_model):
-        local_m2m_fields = super(MultiModelInheritanceSerializer, self).get_local_m2m_fields(concrete_model)
+        # We convert in list because it returns a tuple in Django 1.8+
+        local_m2m_fields = list(super(MultiModelInheritanceSerializer, self).get_local_m2m_fields(concrete_model))
         return local_m2m_fields + self.parent_local_m2m_fields
 
     def start_object(self, obj):
