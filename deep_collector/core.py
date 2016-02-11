@@ -1,8 +1,9 @@
-from cStringIO import StringIO
+
 import logging
 
 from django.db.models import ForeignKey, OneToOneField
 
+from .compat.builtins import basestring, StringIO
 from .compat.serializers import MultiModelInheritanceSerializer
 
 
@@ -174,7 +175,7 @@ class RelatedObjectsCollector(object):
 
         if args:
             msg = msg % args
-        elif not isinstance(msg, (str, unicode)):
+        elif not isinstance(msg, basestring):
             msg = str(msg)
         self.saved_log.append(msg)
 
@@ -261,7 +262,14 @@ class RelatedObjectsCollector(object):
         while self.objects_to_collect:
             parent, obj = self.objects_to_collect.pop()
             children = self._collect(parent, obj)
-            self.objects_to_collect += [(obj, child) for child in children]
+
+            tmp_objects_to_collect = []
+            for child in children:
+                if child:
+                    tmp_objects_to_collect.append((obj, child))
+                else:
+                    self.debug_log('Parent {parent} has a None child.'.format(parent=get_key_from_instance(obj)))
+            self.objects_to_collect += tmp_objects_to_collect
 
     def add_excluded_field(self, parent_instance_key, field_name, related_model_name, count, max_count):
         self.excluded_fields.append({
@@ -424,18 +432,21 @@ class RelatedObjectsCollector(object):
 
 
 def get_model_from_instance(obj):
-    model = '<root>'
-    if obj:
-        try:
-            model = obj._meta.app_label + '.' + obj._meta.module_name
-        except AttributeError:
-            model = obj.model._meta.app_label + '.' + obj.model._meta.module_name
+    if obj is None:
+        return '<null_model>'
 
+    try:
+        meta = obj._meta
+    except AttributeError:
+        meta = obj.model._meta
+
+    # in django 1.8 _meta.module_name was renamed to _meta.model_name
+    model_name = meta.model_name if hasattr(meta, 'model_name') else meta.module_name
+    model = meta.app_label + '.' + model_name
     return model
 
-def get_key_from_instance(obj):
-    key = get_model_from_instance(obj)
-    if obj:
-        key += '.' + str(obj.pk)
 
-    return key
+def get_key_from_instance(obj):
+    if obj is None:
+        return '<null_id>'
+    return get_model_from_instance(obj) + '.' + str(obj.pk)

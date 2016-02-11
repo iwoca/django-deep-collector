@@ -20,7 +20,8 @@ class MultiModelInheritanceSerializer(CustomizableLocalFieldsSerializer):
         return local_fields + self.parent_local_fields
 
     def get_local_m2m_fields(self, concrete_model):
-        local_m2m_fields = super(MultiModelInheritanceSerializer, self).get_local_m2m_fields(concrete_model)
+        # We convert in list because it returns a tuple in Django 1.8+
+        local_m2m_fields = list(super(MultiModelInheritanceSerializer, self).get_local_m2m_fields(concrete_model))
         return local_m2m_fields + self.parent_local_m2m_fields
 
     def start_object(self, obj):
@@ -39,7 +40,7 @@ class MultiModelInheritanceSerializer(CustomizableLocalFieldsSerializer):
         # Collect parent fields that are not collected by default on non-abstract models. We call it recursively
         # to manage parents of parents, ...
         parents = model._meta.parents
-        parents_to_collect = [parent for parent, parent_ptr in parents.iteritems() if not parent._meta.abstract]
+        parents_to_collect = [parent for parent, parent_ptr in parents.items() if not parent._meta.abstract]
 
         for parent in parents_to_collect:
             self.parent_local_fields += parent._meta.local_fields

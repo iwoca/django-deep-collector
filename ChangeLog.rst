@@ -2,6 +2,21 @@ ChangeLog
 =========
 
 
+.. _v0.3:
+
+0.3 (2016-02-11)
+------------------
+
+*New:*
+
+    - Adding python 3 compatibility.
+    - Adding Django 1.8 compatibility.
+
+*bugfix:*
+
+    - Fixing collector bug when collecting a ``None`` child.
+
+
 .. _v0.2.1:
 
 0.2.1 (2016-02-03)
