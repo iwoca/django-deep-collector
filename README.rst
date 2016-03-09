@@ -22,7 +22,7 @@ Create a new instance of RelatedObjectsCollector, and launch collector on one ob
     collector.collect(user)
     related_objects = collector.get_all_related_objects()
 
-If you want to save it in a file to be 'django load_data'-like imported, you can use (only Django 1.4 supported for now):
+If you want to save it in a file to be 'django load_data'-like imported, you can use:
 
 .. code-block:: python
 
