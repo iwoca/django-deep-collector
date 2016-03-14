@@ -4,8 +4,10 @@ import django
 
 if django.VERSION < (1, 7):
     from .django_1_6 import CustomizableLocalFieldsSerializer
-else:
+elif django.VERSION < (1, 9):
     from .django_1_7 import CustomizableLocalFieldsSerializer
+else:
+    from .django_1_9 import CustomizableLocalFieldsSerializer
 
 
 class MultiModelInheritanceSerializer(CustomizableLocalFieldsSerializer):
