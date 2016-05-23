@@ -5,7 +5,7 @@ from .factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
                         ForeignKeyToBaseModelFactory, ClassLevel3Factory,
                         ManyToManyToBaseModelWithRelatedNameFactory)
 from deep_collector.utils import RelatedObjectsCollector
-from .models import ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel, BaseModel
+from .models import ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel, BaseModel, GFKModel
 
 
 class TestDirectRelations(TestCase):
@@ -284,3 +284,14 @@ class TestPostCollect(TestCase):
 
         self.assertIn(root, collector.get_collected_objects())
         self.assertIn(non_root, collector.get_collected_objects())
+
+
+class TestGFKRelation(TestCase):
+
+    def test_get_gfk_key_object(self):
+        obj = BaseModelFactory.create()
+
+        gfkmodel = GFKModel.objects.create(content_object=obj)
+        collector = RelatedObjectsCollector()
+        collector.collect(gfkmodel)
+        self.assertIn(obj, collector.get_collected_objects())

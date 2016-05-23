@@ -14,7 +14,7 @@ DATABASES = {
     }
 }
 
-INSTALLED_APPS = ('tests', )
+INSTALLED_APPS = ('django.contrib.contenttypes', 'tests')
 
 
 # Using DiscoverRunner before Django 1.6 to be able to use test files with 'test*' pattern name
