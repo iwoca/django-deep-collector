@@ -33,7 +33,7 @@ How it works
 ============
 
 This class is used to introspect an object, to get every other objects that depend on it, following its
-'relation' fields, i.e. ForeignKey, OneToOneField and ManyToManyField.
+'relation' fields, i.e. ForeignKey, OneToOneField, ManyToManyField, GenericForeignKey and GenericRelation.
 
 1. We start from given object (of class classA for example), and loop over :
 
@@ -95,6 +95,29 @@ If we are using related_name attribute, then we access manager with its related_
         m2mto = models.ForeignKey(classA, related_name='classE')  # objA.classE.all()
 
 3. For each associated object, we go back to step 1. and get every field, ...
+
+
+GenericForeignKey
+==========
+
+The `GenericForeignKey` has a small exception. If you want it to be collected in the "reverse" way, you should
+explicitly define a `GenericRelation` in the models you want to follow this "reverse" relation.
+
+.. code-block:: python
+
+    class GFKModel(models.Model):
+        content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+        object_id = models.PositiveIntegerField()
+        content_object = GenericForeignKey('content_type', 'object_id')
+
+
+    class BaseToGFKModel(models.Model):
+        gfk_relation = GenericRelation(GFKModel)
+
+In above example, if you collect a `BaseToGFKModel` instance, the collector will look for all `GFKModel` instances
+related to your initial `BaseToGFKModel` instance.
+That happens because the `BaseToGFKModel` model explicitly defines a `GenericRelation`.
+
 
 Parameters
 ==========
