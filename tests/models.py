@@ -2,7 +2,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from .compat import GenericForeignKey
+from deep_collector.compat.fields import GenericForeignKey
 
 
 class FKDummyModel(models.Model):

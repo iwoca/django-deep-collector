@@ -4,6 +4,8 @@ import logging
 from django.db.models import ForeignKey, OneToOneField
 
 from .compat.builtins import basestring, StringIO
+from .compat.fields import GenericForeignKey
+from .compat.meta import get_compat_local_fields
 from .compat.serializers import MultiModelInheritanceSerializer
 
 
@@ -323,7 +325,7 @@ class RelatedObjectsCollector(object):
         # Use the concrete parent class' _meta instead of the object's _meta
         # This is to avoid local_fields problems for proxy models. Refs #17717.
         concrete_model = obj._meta.concrete_model
-        return self.clean_by_fields(obj, concrete_model._meta.local_fields,
+        return self.clean_by_fields(obj, get_compat_local_fields(concrete_model),
                           lambda x: x.name, self.EXCLUDE_DIRECT_FIELDS)
 
     def get_local_m2m_fields(self, obj):
@@ -343,7 +345,7 @@ class RelatedObjectsCollector(object):
         local_objs = []
 
         for field in self.get_local_fields(obj):
-            if isinstance(field, ForeignKey):
+            if isinstance(field, ForeignKey) or isinstance(field, GenericForeignKey):
                 self.debug_log('+ local field : ' + field.name)
                 try:
                     instance = getattr(obj, field.name)
