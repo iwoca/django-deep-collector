@@ -2,7 +2,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from deep_collector.compat.fields import GenericForeignKey
+from deep_collector.compat.fields import GenericForeignKey, GenericRelation
 
 
 class FKDummyModel(models.Model):
@@ -71,3 +71,7 @@ class GFKModel(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
+
+
+class BaseToGFKModel(models.Model):
+    gfk_relation = GenericRelation(GFKModel)

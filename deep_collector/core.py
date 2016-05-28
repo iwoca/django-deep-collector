@@ -4,7 +4,7 @@ import logging
 from django.db.models import ForeignKey, OneToOneField
 
 from .compat.builtins import basestring, StringIO
-from .compat.fields import GenericForeignKey
+from .compat.fields import GenericForeignKey, GenericRelation
 from .compat.meta import get_compat_local_fields
 from .compat.serializers import MultiModelInheritanceSerializer
 
@@ -358,6 +358,13 @@ class RelatedObjectsCollector(object):
                         self.debug_log('-- No direct instance for ' + field.name)
                 except Exception as e:
                     self.debug_log('-- No direct instance for ' + field.name)
+            elif isinstance(field, GenericRelation):
+                self.debug_log('+ local reverse generic fields : ' + field.name)
+                try:
+                    instance = getattr(obj, field.name)
+                    local_objs += instance.all()
+                except Exception as e:
+                    self.debug_log('-- No reverse generic instance for ' + field.name)
 
         for field in self.get_local_m2m_fields(obj):
             self.debug_log('+ local m2m field : ' + field.name)

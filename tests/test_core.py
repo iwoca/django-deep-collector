@@ -5,7 +5,8 @@ from .factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
                         ForeignKeyToBaseModelFactory, ClassLevel3Factory,
                         ManyToManyToBaseModelWithRelatedNameFactory)
 from deep_collector.utils import RelatedObjectsCollector
-from .models import ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel, BaseModel, GFKModel
+from .models import ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel, BaseModel, GFKModel, \
+    BaseToGFKModel
 
 
 class TestDirectRelations(TestCase):
@@ -290,8 +291,24 @@ class TestGFKRelation(TestCase):
 
     def test_get_gfk_key_object(self):
         obj = BaseModelFactory.create()
-
         gfkmodel = GFKModel.objects.create(content_object=obj)
+
         collector = RelatedObjectsCollector()
         collector.collect(gfkmodel)
         self.assertIn(obj, collector.get_collected_objects())
+
+    def test_doesnt_automatically_get_reverse_gfk_key_object(self):
+        obj = BaseModelFactory.create()
+        gfkmodel = GFKModel.objects.create(content_object=obj)
+
+        collector = RelatedObjectsCollector()
+        collector.collect(obj)
+        self.assertNotIn(gfkmodel, collector.get_collected_objects())
+
+    def test_get_reverse_gfk_key_object_if_generic_relation_is_explicitly_defined(self):
+        obj = BaseToGFKModel.objects.create()
+        gfkmodel = GFKModel.objects.create(content_object=obj)
+
+        collector = RelatedObjectsCollector()
+        collector.collect(obj)
+        self.assertIn(gfkmodel, collector.get_collected_objects())
