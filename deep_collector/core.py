@@ -360,11 +360,16 @@ class RelatedObjectsCollector(object):
                     self.debug_log('-- No direct instance for ' + field.name)
             elif isinstance(field, GenericRelation):
                 self.debug_log('+ local reverse generic fields : ' + field.name)
-                try:
-                    instance = getattr(obj, field.name)
-                    local_objs += instance.all()
-                except Exception as e:
-                    self.debug_log('-- No reverse generic instance for ' + field.name)
+                generic_manager = getattr(obj, field.name)
+                objs_count = generic_manager.count()
+                related_model_name = get_model_from_instance(generic_manager.model)
+                max_count = self.get_maximum_allowed_instances_for_model(related_model_name)
+                if objs_count > max_count:
+                    self.debug_log('Too many reverse generic related objects. Would be irrelevant to introspect...')
+                    self.add_excluded_field(get_key_from_instance(obj), field.name,
+                                            related_model_name, objs_count, max_count)
+                else:
+                    local_objs += generic_manager.all()
 
         for field in self.get_local_m2m_fields(obj):
             self.debug_log('+ local m2m field : ' + field.name)
