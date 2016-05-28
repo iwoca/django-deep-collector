@@ -289,7 +289,7 @@ class RelatedObjectsCollector(object):
 
         related_model_name = get_model_from_instance(object_example)
         max_count = self.get_maximum_allowed_instances_for_model(related_model_name)
-        if len(objects) > max_count:
+        if objs_count > max_count:
             self.debug_log('Too many related objects. Would be irrelevant to introspect...')
             self.add_excluded_field(get_key_from_instance(current_instance), field_name,
                                     related_model_name, objs_count, max_count)
