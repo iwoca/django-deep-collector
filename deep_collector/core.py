@@ -273,6 +273,30 @@ class RelatedObjectsCollector(object):
                     self.debug_log('Parent {parent} has a None child.'.format(parent=get_key_from_instance(obj)))
             self.objects_to_collect += tmp_objects_to_collect
 
+    def filter_objects_that_exceeds_threshold(self, objects, current_instance, field_name):
+        """
+        If the field we are currently working on has too many objects related to it, we want to restrict it
+        depending on a settings-driven threshold.
+        :param objects: The objects we want to filter
+        :param current_obj: The current collected instance
+        :param field_name: The current field name
+        :return:
+        """
+        objs_count = len(objects)
+        if objs_count == 0:
+            return []
+        object_example = objects[0]
+
+        related_model_name = get_model_from_instance(object_example)
+        max_count = self.get_maximum_allowed_instances_for_model(related_model_name)
+        if len(objects) > max_count:
+            self.debug_log('Too many related objects. Would be irrelevant to introspect...')
+            self.add_excluded_field(get_key_from_instance(current_instance), field_name,
+                                    related_model_name, objs_count, max_count)
+            return []
+
+        return objects
+
     def add_excluded_field(self, parent_instance_key, field_name, related_model_name, count, max_count):
         self.excluded_fields.append({
             'parent_instance': parent_instance_key,
@@ -361,15 +385,7 @@ class RelatedObjectsCollector(object):
             elif isinstance(field, GenericRelation):
                 self.debug_log('+ local reverse generic fields : ' + field.name)
                 generic_manager = getattr(obj, field.name)
-                objs_count = generic_manager.count()
-                related_model_name = get_model_from_instance(generic_manager.model)
-                max_count = self.get_maximum_allowed_instances_for_model(related_model_name)
-                if objs_count > max_count:
-                    self.debug_log('Too many reverse generic related objects. Would be irrelevant to introspect...')
-                    self.add_excluded_field(get_key_from_instance(obj), field.name,
-                                            related_model_name, objs_count, max_count)
-                else:
-                    local_objs += generic_manager.all()
+                local_objs += self.filter_objects_that_exceeds_threshold(generic_manager.all(), obj, field.name)
 
         for field in self.get_local_m2m_fields(obj):
             self.debug_log('+ local m2m field : ' + field.name)
@@ -384,14 +400,7 @@ class RelatedObjectsCollector(object):
                     nb=objs_count, related=field.name))
                 self.debug_log('*' * 80)
 
-                related_model_name = get_model_from_instance(m2m_manager.model)
-                max_count = self.get_maximum_allowed_instances_for_model(related_model_name)
-                if objs_count > max_count:
-                    self.debug_log('Too many related objects. Would be irrelevant to introspect...')
-                    self.add_excluded_field(get_key_from_instance(obj), field.name,
-                                            related_model_name, objs_count, max_count)
-                else:
-                    local_objs += m2m_manager.all()
+                local_objs += self.filter_objects_that_exceeds_threshold(m2m_manager.all(), obj, field.name)
 
         return local_objs
 
@@ -435,13 +444,9 @@ class RelatedObjectsCollector(object):
             self.debug_log('*' * 80)
             self.debug_log('*****  Got {nb} related instance(s) for {related} *****'.format(nb=len(related_objs), related=related.name))
             self.debug_log('*' * 80)
-            related_model_name = get_model_from_instance(related_objs[0])
-            max_count = self.get_maximum_allowed_instances_for_model(related_model_name)
-            if len(related_objs) > max_count:
-                self.debug_log('Too many related objects. Would be irrelevant to introspect...')
-                self.add_excluded_field(get_key_from_instance(objs[0]), related.get_accessor_name(),
-                                        related_model_name, len(related_objs), max_count)
-                related_objs = []
+
+            related_objs = self.filter_objects_that_exceeds_threshold(related_objs, objs[0], related.get_accessor_name())
+
         return related_objs
 
 
