@@ -273,7 +273,7 @@ class RelatedObjectsCollector(object):
                     self.debug_log('Parent {parent} has a None child.'.format(parent=get_key_from_instance(obj)))
             self.objects_to_collect += tmp_objects_to_collect
 
-    def filter_objects_that_exceeds_threshold(self, objects, current_instance, field_name):
+    def filter_by_threshold(self, objects, current_instance, field_name):
         """
         If the field we are currently working on has too many objects related to it, we want to restrict it
         depending on a settings-driven threshold.
@@ -385,7 +385,7 @@ class RelatedObjectsCollector(object):
             elif isinstance(field, GenericRelation):
                 self.debug_log('+ local reverse generic fields : ' + field.name)
                 generic_manager = getattr(obj, field.name)
-                local_objs += self.filter_objects_that_exceeds_threshold(generic_manager.all(), obj, field.name)
+                local_objs += self.filter_by_threshold(generic_manager.all(), obj, field.name)
 
         for field in self.get_local_m2m_fields(obj):
             self.debug_log('+ local m2m field : ' + field.name)
@@ -400,7 +400,7 @@ class RelatedObjectsCollector(object):
                     nb=objs_count, related=field.name))
                 self.debug_log('*' * 80)
 
-                local_objs += self.filter_objects_that_exceeds_threshold(m2m_manager.all(), obj, field.name)
+                local_objs += self.filter_by_threshold(m2m_manager.all(), obj, field.name)
 
         return local_objs
 
@@ -445,7 +445,7 @@ class RelatedObjectsCollector(object):
             self.debug_log('*****  Got {nb} related instance(s) for {related} *****'.format(nb=len(related_objs), related=related.name))
             self.debug_log('*' * 80)
 
-            related_objs = self.filter_objects_that_exceeds_threshold(related_objs, objs[0], related.get_accessor_name())
+            related_objs = self.filter_by_threshold(related_objs, objs[0], related.get_accessor_name())
 
         return related_objs
 
