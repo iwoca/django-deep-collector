@@ -98,7 +98,7 @@ If we are using related_name attribute, then we access manager with its related_
 
 
 GenericForeignKey
-==========
+=================
 
 The `GenericForeignKey` has a small exception. If you want it to be collected in the "reverse" way, you should
 explicitly define a `GenericRelation` in the models you want to follow this "reverse" relation.
