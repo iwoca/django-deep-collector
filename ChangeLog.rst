@@ -2,6 +2,17 @@ ChangeLog
 =========
 
 
+.. _v0.4:
+
+0.4 (2016-06-19)
+------------------
+
+*New:*
+
+    - Adding ``GenericForeignKey`` support.
+    - Adding compat function to get local fields (_meta API updated in Django 1.9).
+
+
 .. _v0.3.1:
 
 0.3.1 (2016-04-06)
@@ -13,6 +24,7 @@ ChangeLog
 
 
 .. _v0.3:
+
 
 0.3 (2016-02-11)
 ------------------

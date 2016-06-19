@@ -10,7 +10,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-deep-collector',
-    version='0.3.1',
+    version='0.4',
     packages=['deep_collector'],
     include_package_data=True,
     license='BSD License',
