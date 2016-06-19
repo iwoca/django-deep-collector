@@ -10,6 +10,7 @@ ChangeLog
 *New:*
 
     - Adding ``GenericForeignKey`` support.
+    - Adding compat function to get local fields (_meta API updated in Django 1.9).
 
 
 .. _v0.3.1:
