@@ -1,1 +1,5 @@
 *.pyc
+.tox/
+build/
+dist/
+django_deep_collector.egg-info/
