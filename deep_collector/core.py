@@ -5,7 +5,9 @@ from django.db.models import ForeignKey, OneToOneField
 
 from .compat.builtins import basestring, StringIO
 from .compat.fields import GenericForeignKey, GenericRelation
-from .compat.meta import get_compat_local_fields
+from .compat.meta import (get_all_related_objects,
+                          get_all_related_m2m_objects_with_model,
+                          get_compat_local_fields)
 from .compat.serializers import MultiModelInheritanceSerializer
 
 
@@ -405,11 +407,11 @@ class RelatedObjectsCollector(object):
         return local_objs
 
     def get_related_fields(self, obj):
-        return self.clean_by_fields(obj, obj._meta.get_all_related_objects(),
+        return self.clean_by_fields(obj, get_all_related_objects(obj),
                           lambda x: x.get_accessor_name(), self.EXCLUDE_RELATED_FIELDS)
 
     def get_related_m2m_fields(self, obj):
-        return self.clean_by_fields(obj, obj._meta.get_all_related_m2m_objects_with_model(),
+        return self.clean_by_fields(obj, get_all_related_m2m_objects_with_model(obj),
                           lambda x:x[0].get_accessor_name(), self.EXCLUDE_RELATED_FIELDS)
 
     def get_related_objs(self, obj):
