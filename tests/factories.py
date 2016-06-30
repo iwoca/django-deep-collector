@@ -3,7 +3,7 @@ import factory
 
 from .models import (FKDummyModel, O2ODummyModel, BaseModel, ManyToManyToBaseModel,
     ForeignKeyToBaseModel, OneToOneToBaseModel, ClassLevel1, ClassLevel2, ClassLevel3,
-    ManyToManyToBaseModelWithRelatedName, ChildModel)
+    ManyToManyToBaseModelWithRelatedName, ChildModel, SubClassOfBaseModel)
 
 
 class FKDummyModelFactory(factory.django.DjangoModelFactory):
@@ -26,6 +26,11 @@ class BaseModelFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = BaseModel
+
+
+class SubClassOfBaseModelFactory(BaseModelFactory):
+    class Meta:
+        model = SubClassOfBaseModel
 
 
 class ManyToManyToBaseModelFactory(factory.django.DjangoModelFactory):
