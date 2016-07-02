@@ -14,7 +14,8 @@ else:
     def get_all_related_objects(obj):
         return  [
             f for f in obj._meta.get_fields()
-            if (f.one_to_many or f.one_to_one) and f.auto_created
+            if (f.one_to_many or f.one_to_one) and 
+               f.auto_created and not f.concrete
         ]
 
     def get_all_related_m2m_objects_with_model(obj):
