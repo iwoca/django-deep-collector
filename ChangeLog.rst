@@ -2,6 +2,20 @@ ChangeLog
 =========
 
 
+.. _v0.4.2:
+
+0.4.2 (2016-07-04)
+------------------
+
+*Bugfix:*
+
+    - Fixing bug introduced in 0.4.1, related to inherited model collection. The django documentation was followed
+      to help for compatibility_, but there is an issue related to inherited models and explained in this ticket_.
+
+.. _compatibility: https://docs.djangoproject.com/en/1.9/ref/models/meta/
+.. _ticket: https://code.djangoproject.com/ticket/25461
+
+
 .. _v0.4.1:
 
 0.4.1 (2016-06-29)
