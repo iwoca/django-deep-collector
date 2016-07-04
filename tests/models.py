@@ -19,6 +19,10 @@ class BaseModel(models.Model):
     o2o = models.OneToOneField(O2ODummyModel)
 
 
+class SubClassOfBaseModel(BaseModel):
+    pass
+
+
 class ManyToManyToBaseModel(models.Model):
     name = models.CharField(max_length=255)
     m2m = models.ManyToManyField(BaseModel)

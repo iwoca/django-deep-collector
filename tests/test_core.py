@@ -3,10 +3,11 @@ from django.test import TestCase
 
 from .factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
                         ForeignKeyToBaseModelFactory, ClassLevel3Factory,
-                        ManyToManyToBaseModelWithRelatedNameFactory)
+                        ManyToManyToBaseModelWithRelatedNameFactory,
+                        SubClassOfBaseModelFactory)
 from deep_collector.utils import RelatedObjectsCollector
 from .models import ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel, BaseModel, GFKModel, \
-    BaseToGFKModel
+    BaseToGFKModel, SubClassOfBaseModel
 
 
 class TestDirectRelations(TestCase):
@@ -32,6 +33,13 @@ class TestDirectRelations(TestCase):
         collector = RelatedObjectsCollector()
         collector.collect(m2m_model)
         self.assertIn(obj, collector.get_collected_objects())
+
+    def test_one_to_one_object_inherited(self):
+        obj = SubClassOfBaseModelFactory.create()
+
+        collector = RelatedObjectsCollector()
+        collector.collect(obj)
+        self.assertIn(obj.o2o, collector.get_collected_objects())
 
 
 class TestReverseRelations(TestCase):
