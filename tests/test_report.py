@@ -15,7 +15,7 @@ class TestLogReportGeneration(TestCase):
 
         self.assertDictEqual(report, {
             'excluded_fields': [],
-            'log': 'Set DEBUG to True if you what collector internal logs'
+            'log': 'Set DEBUG to True to get collector internal logs'
         })
 
     def test_report_with_debug_mode(self):

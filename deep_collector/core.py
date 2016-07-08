@@ -156,7 +156,7 @@ class RelatedObjectsCollector(object):
     def get_report(self):
         return {
             'excluded_fields': self.excluded_fields,
-            'log': self.saved_log if self.DEBUG else "Set DEBUG to True if you what collector internal logs",
+            'log': self.saved_log if self.DEBUG else "Set DEBUG to True to get collector internal logs",
         }
 
     def get_collected_objects(self):
