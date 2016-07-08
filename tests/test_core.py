@@ -5,9 +5,9 @@ from .factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
                         ForeignKeyToBaseModelFactory, ClassLevel3Factory,
                         ManyToManyToBaseModelWithRelatedNameFactory,
                         SubClassOfBaseModelFactory)
-from deep_collector.utils import RelatedObjectsCollector
-from .models import ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel, BaseModel, GFKModel, \
-    BaseToGFKModel, SubClassOfBaseModel
+from deep_collector.utils import DeepCollector, RelatedObjectCollector
+from .models import (ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel, BaseModel, GFKModel,
+                     BaseToGFKModel)
 
 
 class TestDirectRelations(TestCase):
@@ -15,14 +15,14 @@ class TestDirectRelations(TestCase):
     def test_get_foreign_key_object(self):
         obj = BaseModelFactory.create()
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(obj)
         self.assertIn(obj.fkey, collector.get_collected_objects())
 
     def test_get_one_to_one_object(self):
         obj = BaseModelFactory.create()
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(obj)
         self.assertIn(obj.o2o, collector.get_collected_objects())
 
@@ -30,14 +30,14 @@ class TestDirectRelations(TestCase):
         obj = BaseModelFactory.create()
         m2m_model = ManyToManyToBaseModelFactory.create(base_models=[obj])
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(m2m_model)
         self.assertIn(obj, collector.get_collected_objects())
 
     def test_one_to_one_object_inherited(self):
         obj = SubClassOfBaseModelFactory.create()
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(obj)
         self.assertIn(obj.o2o, collector.get_collected_objects())
 
@@ -47,7 +47,7 @@ class TestReverseRelations(TestCase):
     def test_get_reverse_foreign_key_object(self):
         fkey_model = ForeignKeyToBaseModelFactory.create()
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(fkey_model.fkeyto)
         self.assertIn(fkey_model, collector.get_collected_objects())
 
@@ -55,7 +55,7 @@ class TestReverseRelations(TestCase):
         obj = BaseModelFactory.create()
         m2m_model = ManyToManyToBaseModelFactory.create(base_models=[obj])
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(obj)
         self.assertIn(m2m_model, collector.get_collected_objects())
 
@@ -67,7 +67,7 @@ class TestNestedObjects(TestCase):
         level2 = level3.fkey
         level1 = level2.fkey
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
 
         # Double reverse field collection
         collector.collect(level1)
@@ -96,7 +96,7 @@ class TestCollectorParameters(TestCase):
     def test_model_is_excluded_when_defined_in_models_exclude_list(self):
         obj = BaseModelFactory.create()
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.EXCLUDE_MODELS = ['tests.o2odummymodel']
         collector.collect(obj)
 
@@ -105,7 +105,7 @@ class TestCollectorParameters(TestCase):
     def test_direct_field_is_excluded_when_defined_in_direct_field_exclude_list(self):
         obj = BaseModelFactory.create()
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.EXCLUDE_DIRECT_FIELDS = {
             'tests.basemodel': ['fkey']
         }
@@ -117,7 +117,7 @@ class TestCollectorParameters(TestCase):
         obj = BaseModelFactory.create()
         m2m_model = ManyToManyToBaseModelFactory.create(base_models=[obj])
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.EXCLUDE_RELATED_FIELDS = {
             'tests.basemodel': ['manytomanytobasemodel_set']
         }
@@ -129,7 +129,7 @@ class TestCollectorParameters(TestCase):
         obj = BaseModelFactory.create()
         m2m_model = ManyToManyToBaseModelWithRelatedNameFactory.create(base_models=[obj])
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.EXCLUDE_RELATED_FIELDS = {
             'tests.basemodel': ['custom_related_m2m_name']
         }
@@ -143,7 +143,7 @@ class TestCollectorParameters(TestCase):
         fkey2 = ForeignKeyToBaseModelFactory(fkeyto=obj)
         fkey3 = ForeignKeyToBaseModelFactory(fkeyto=obj)
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.MAXIMUM_RELATED_INSTANCES = 3
         collector.collect(obj)
         collected_objects = collector.get_collected_objects()
@@ -172,7 +172,7 @@ class TestCollectorParameters(TestCase):
         fkey2 = ForeignKeyToBaseModelFactory(fkeyto=obj)
         fkey3 = ForeignKeyToBaseModelFactory(fkeyto=obj)
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         # If model is specified in MAXIMUM_RELATED_INSTANCES_PER_MODEL, we don't take into account
         # MAXIMUM_RELATED_INSTANCES parameter
         collector.MAXIMUM_RELATED_INSTANCES = 1
@@ -184,7 +184,7 @@ class TestCollectorParameters(TestCase):
         self.assertEquals(len(collector.get_report()['excluded_fields']), 0)
 
         # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.MAXIMUM_RELATED_INSTANCES = 1
         collector.MAXIMUM_RELATED_INSTANCES_PER_MODEL = {'tests.foreignkeytobasemodel': 2}
         collector.collect(obj)
@@ -207,7 +207,7 @@ class TestCollectorParameters(TestCase):
         obj3 = BaseModelFactory.create()
         root_obj = ManyToManyToBaseModelFactory.create(base_models=[obj1, obj2, obj3])
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.MAXIMUM_RELATED_INSTANCES = 3
         collector.collect(root_obj)
         collected_objects = collector.get_collected_objects()
@@ -236,7 +236,7 @@ class TestCollectorParameters(TestCase):
         obj3 = BaseModelFactory.create()
         root_obj = ManyToManyToBaseModelFactory.create(base_models=[obj1, obj2, obj3])
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.MAXIMUM_RELATED_INSTANCES = 1
         collector.MAXIMUM_RELATED_INSTANCES_PER_MODEL = {'tests.basemodel': 3}
         collector.collect(root_obj)
@@ -288,7 +288,7 @@ class TestPostCollect(TestCase):
         # OR
         # "DoesNotExist: InvalidFKNonRootModel matching query does not exist."
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(root)
 
         self.assertIn(root, collector.get_collected_objects())
@@ -301,7 +301,7 @@ class TestGFKRelation(TestCase):
         obj = BaseModelFactory.create()
         gfkmodel = GFKModel.objects.create(content_object=obj)
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(gfkmodel)
         self.assertIn(obj, collector.get_collected_objects())
 
@@ -309,7 +309,7 @@ class TestGFKRelation(TestCase):
         obj = BaseModelFactory.create()
         gfkmodel = GFKModel.objects.create(content_object=obj)
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(obj)
         self.assertNotIn(gfkmodel, collector.get_collected_objects())
 
@@ -317,7 +317,7 @@ class TestGFKRelation(TestCase):
         obj = BaseToGFKModel.objects.create()
         gfkmodel = GFKModel.objects.create(content_object=obj)
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.collect(obj)
         self.assertIn(gfkmodel, collector.get_collected_objects())
 
@@ -326,8 +326,18 @@ class TestGFKRelation(TestCase):
         gfkmodel = GFKModel.objects.create(content_object=obj)
         gfkmodel2 = GFKModel.objects.create(content_object=obj)
 
-        collector = RelatedObjectsCollector()
+        collector = DeepCollector()
         collector.MAXIMUM_RELATED_INSTANCES_PER_MODEL = {'tests.gfkmodel': 1}
         collector.collect(obj)
         self.assertNotIn(gfkmodel, collector.get_collected_objects())
         self.assertNotIn(gfkmodel2, collector.get_collected_objects())
+
+
+class TestBackwardCompatibility(TestCase):
+
+    def test_get_foreign_key_object(self):
+        obj = BaseModelFactory.create()
+
+        collector = RelatedObjectCollector()
+        collector.collect(obj)
+        self.assertIn(obj.fkey, collector.get_collected_objects())
