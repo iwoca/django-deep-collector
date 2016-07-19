@@ -125,6 +125,9 @@ class RelatedObjectsCollector(object):
     # We are settings related instances maximum size depending on the model
     MAXIMUM_RELATED_INSTANCES_PER_MODEL = {}
 
+    # To be used if you want a detailed report on different collector steps.
+    DEBUG = False
+
     def clean_by_fields(self, obj, fields, get_field_fn, exclude_list):
         """
         Function used to exclude defined fields from object collect.
@@ -153,7 +156,7 @@ class RelatedObjectsCollector(object):
     def get_report(self):
         return {
             'excluded_fields': self.excluded_fields,
-            'log': self.saved_log,
+            'log': self.saved_log if self.DEBUG else "Set DEBUG to True to get collector internal logs",
         }
 
     def get_collected_objects(self):
@@ -174,35 +177,25 @@ class RelatedObjectsCollector(object):
 
         return string_buffer
 
-    def debug_log(self, msg, *args, **kwargs):
-        logger.debug(msg, *args, **kwargs)
-
-        if args:
-            msg = msg % args
-        elif not isinstance(msg, basestring):
-            msg = str(msg)
-        self.saved_log.append(msg)
+    def emit_event(self, **kwargs):
+        if self.DEBUG:
+            self.saved_log.append(kwargs)
 
     def _is_already_collected(self, parent, obj):
         new_key = get_key_from_instance(obj)
-        parent_key = get_key_from_instance(parent)
         is_already_collected = new_key in self.collected_objs
 
         if is_already_collected:
-            self.debug_log('-' * 100)
-            self.debug_log('Collecting >>> {key} <<< (from {parent_key}) : NOK (already collected)'.format(
-                key=new_key, parent_key=parent_key))
+            self.emit_event(type='already_collected', obj=obj, parent=parent)
 
         return is_already_collected
 
     def _is_excluded_model(self, obj):
         obj_model = get_model_from_instance(obj)
-        obj_key = get_key_from_instance(obj)
         is_excluded_model = obj_model in self.EXCLUDE_MODELS
 
         if is_excluded_model:
-            self.debug_log('-' * 100)
-            self.debug_log('Not Collecting {key} (excluded model)'.format(key=obj_key))
+            self.emit_event(type='exluded_model', obj=obj)
 
         return is_excluded_model
 
@@ -218,9 +211,8 @@ class RelatedObjectsCollector(object):
             is_same_type_as_root = obj_model == self.root_obj_model and obj_key != self.root_obj_key
 
             if is_same_type_as_root:
-                self.debug_log('*********** WARNING NEW {obj_model} obj : {obj_key} ***************'.format(
-                     obj_model=obj_model, obj_key=obj_key
-                ))
+                self.emit_event(type='same_type_as_root', obj=obj)
+
             return is_same_type_as_root
         else:
             return False
@@ -234,21 +226,19 @@ class RelatedObjectsCollector(object):
         return is_excluded_from_collect
 
     def add_to_collected_object(self, parent, obj):
-        parent_key = get_key_from_instance(parent)
         new_key = get_key_from_instance(obj)
 
         self.collected_objs[new_key] = obj
 
-        self.debug_log('-' * 100)
-        self.debug_log('Collecting >>> {key} <<< (from {parent_key}) : OK'.format(
-            key=new_key, parent_key=parent_key))
+        self.emit_event(type='object_collected', obj=obj, parent=parent)
 
         model = get_model_from_instance(obj)
         if model in self.collected_objs_history:
             self.collected_objs_history[model] += 1
         else:
             self.collected_objs_history[model] = 1
-        self.debug_log(self.collected_objs_history)
+
+        self.emit_event(type='object_collect_history', objs=self.collected_objs_history)
 
     def collect(self, root_obj):
         # Resetting collected_objs if several collects are called.
@@ -272,7 +262,7 @@ class RelatedObjectsCollector(object):
                 if child:
                     tmp_objects_to_collect.append((obj, child))
                 else:
-                    self.debug_log('Parent {parent} has a None child.'.format(parent=get_key_from_instance(obj)))
+                    self.emit_event(type='child_none', obj=obj, parent=parent)
             self.objects_to_collect += tmp_objects_to_collect
 
     def filter_by_threshold(self, objects, current_instance, field_name):
@@ -292,7 +282,7 @@ class RelatedObjectsCollector(object):
         related_model_name = get_model_from_instance(object_example)
         max_count = self.get_maximum_allowed_instances_for_model(related_model_name)
         if objs_count > max_count:
-            self.debug_log('Too many related objects. Would be irrelevant to introspect...')
+            self.emit_event(type='too_many_related_objects', obj=current_instance, related_model=related_model_name)
             self.add_excluded_field(get_key_from_instance(current_instance), field_name,
                                     related_model_name, objs_count, max_count)
             return []
@@ -372,36 +362,30 @@ class RelatedObjectsCollector(object):
 
         for field in self.get_local_fields(obj):
             if isinstance(field, ForeignKey) or isinstance(field, GenericForeignKey):
-                self.debug_log('+ local field : ' + field.name)
+                self.emit_event(type='local_field', obj=obj, field=field)
                 try:
                     instance = getattr(obj, field.name)
                     if instance:
-                        self.debug_log('*' * 80)
-                        self.debug_log('***** Direct instance for ' + field.name + ' *****')
-                        self.debug_log('*' * 80)
+                        self.emit_event(type='local_field_w_instance', obj=obj, field=field)
                         local_objs.append(instance)
                     else:
-                        self.debug_log('-- No direct instance for ' + field.name)
+                        self.emit_event(type='local_field_wo_instance', obj=obj, field=field)
                 except Exception as e:
-                    self.debug_log('-- No direct instance for ' + field.name)
+                    self.emit_event(type='local_field_no_instance', obj=obj, field=field)
             elif isinstance(field, GenericRelation):
-                self.debug_log('+ local reverse generic fields : ' + field.name)
+                self.emit_event(type='local_reverse_generic_field', obj=obj, field=field)
                 generic_manager = getattr(obj, field.name)
                 local_objs += self.filter_by_threshold(generic_manager.all(), obj, field.name)
 
         for field in self.get_local_m2m_fields(obj):
-            self.debug_log('+ local m2m field : ' + field.name)
+            self.emit_event(type='local_m2m_field', obj=obj, field=field)
             m2m_manager = getattr(obj, field.name)
             objs_count = m2m_manager.count()
 
             if not objs_count:
-                self.debug_log('-- No direct instances for ' + field.name)
+                self.emit_event(type='local_m2m_field_wo_instance', obj=obj, field=field)
             else:
-                self.debug_log('*' * 80)
-                self.debug_log('*****  Got {nb} direct instance(s) for {related} *****'.format(
-                    nb=objs_count, related=field.name))
-                self.debug_log('*' * 80)
-
+                self.emit_event(type='local_m2m_field_w_instance', obj=obj, field=field, number=objs_count)
                 local_objs += self.filter_by_threshold(m2m_manager.all(), obj, field.name)
 
         return local_objs
@@ -418,11 +402,11 @@ class RelatedObjectsCollector(object):
         related_objs = []
 
         for related_field in self.get_related_fields(obj):
-            self.debug_log('+ related field : ' + related_field.get_accessor_name() + ' (' + related_field.name + ')')
+            self.emit_event(type='related_field', obj=obj, field=related_field)
             related_objs += self.query_related_objects(related_field, [obj])
 
         for related_field, _ in self.get_related_m2m_fields(obj):
-            self.debug_log('+ related m2m field : ' + related_field.get_accessor_name() + ' (' + related_field.name + ')')
+            self.emit_event(type='related_m2m_field', obj=obj, field=related_field)
             related_objs += self.query_related_objects(related_field, [obj])
 
         return related_objs
@@ -437,15 +421,14 @@ class RelatedObjectsCollector(object):
                 related_objs = [related_obj_or_manager]
             else:
                 related_objs = list(related_obj_or_manager.all())
-        except Exception as e:
-            self.debug_log('Exception while getting related objects: %s', str(e))
+        # TODO: make this exception less broad
+        except Exception:
+            self.emit_event(type='error_related_object', obj=objs[0], field=related)
 
         if not related_objs:
-            self.debug_log('-- No related instances for ' + related.name)
+            self.emit_event(type='no_related_object', obj=objs[0], field=related)
         else:
-            self.debug_log('*' * 80)
-            self.debug_log('*****  Got {nb} related instance(s) for {related} *****'.format(nb=len(related_objs), related=related.name))
-            self.debug_log('*' * 80)
+            self.emit_event(type='related_objects', obj=objs[0], field=related, number=len(related_objs))
 
             related_objs = self.filter_by_threshold(related_objs, objs[0], related.get_accessor_name())
 

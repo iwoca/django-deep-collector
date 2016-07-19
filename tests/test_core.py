@@ -139,9 +139,7 @@ class TestCollectorParameters(TestCase):
 
     def test_parameter_to_avoid_collect_if_too_many_related_objects(self):
         obj = BaseModelFactory.create()
-        fkey1 = ForeignKeyToBaseModelFactory(fkeyto=obj)
-        fkey2 = ForeignKeyToBaseModelFactory(fkeyto=obj)
-        fkey3 = ForeignKeyToBaseModelFactory(fkeyto=obj)
+        ForeignKeyToBaseModelFactory.create_batch(fkeyto=obj, size=3)
 
         collector = RelatedObjectsCollector()
         collector.MAXIMUM_RELATED_INSTANCES = 3
@@ -149,7 +147,6 @@ class TestCollectorParameters(TestCase):
         collected_objects = collector.get_collected_objects()
 
         self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 3)
-        self.assertEquals(len(collector.get_report()['excluded_fields']), 0)
 
         # If we have more related objects than expected, we are not collecting them, to avoid a too big collection
         collector.MAXIMUM_RELATED_INSTANCES = 2
@@ -157,7 +154,6 @@ class TestCollectorParameters(TestCase):
         collected_objects = collector.get_collected_objects()
         self.assertEquals(len([x for x in collected_objects if isinstance(x, ForeignKeyToBaseModel)]), 0)
 
-        self.assertEquals(len(collector.get_report()['excluded_fields']), 1)
         self.assertDictEqual({
             'parent_instance': u'tests.basemodel.%s' % obj.pk,
             'field_name': u'foreignkeytobasemodel_set',
