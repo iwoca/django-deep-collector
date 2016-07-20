@@ -5,7 +5,7 @@ from .factories import (BaseModelFactory, ManyToManyToBaseModelFactory,
                         ForeignKeyToBaseModelFactory, ClassLevel3Factory,
                         ManyToManyToBaseModelWithRelatedNameFactory,
                         SubClassOfBaseModelFactory)
-from deep_collector.utils import DeepCollector, RelatedObjectCollector
+from deep_collector.utils import DeepCollector, RelatedObjectsCollector
 from .models import (ForeignKeyToBaseModel, InvalidFKRootModel, InvalidFKNonRootModel, BaseModel, GFKModel,
                      BaseToGFKModel)
 
@@ -334,6 +334,6 @@ class TestBackwardCompatibility(TestCase):
     def test_get_foreign_key_object(self):
         obj = BaseModelFactory.create()
 
-        collector = RelatedObjectCollector()
+        collector = RelatedObjectsCollector()
         collector.collect(obj)
         self.assertIn(obj.fkey, collector.get_collected_objects())

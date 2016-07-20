@@ -457,4 +457,4 @@ def get_key_from_instance(obj):
 
 
 # For backward compatibility
-RelatedObjectCollector = DeepCollector
+RelatedObjectsCollector = DeepCollector
