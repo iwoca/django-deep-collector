@@ -13,7 +13,7 @@ from .compat.serializers import MultiModelInheritanceSerializer
 
 logger = logging.getLogger(__name__)
 
-class RelatedObjectsCollector(object):
+class DeepCollector(object):
     """
     This class is used to introspect an object, to get every other objects that depend on it, following its
     'relation' fields, i.e. ForeignKey, OneToOneField and ManyToManyField.
@@ -64,11 +64,11 @@ class RelatedObjectsCollector(object):
     HOWTO use:
 
     Create a new instance of RelatedObjectsCollector, and launch collector on one object:
-    >>> from nested_collector.utils import RelatedObjectsCollector
+    >>> from deep_collector.core import DeepCollector
     >>> from django.contrib.auth.models import User
     >>>
     >>> user = User.objects.all()[0]
-    >>> collector = RelatedObjectsCollector()
+    >>> collector = DeepCollector()
     >>> collector.collect(user)
     >>> related_objects = collector.get_all_related_objects()
 
@@ -454,3 +454,7 @@ def get_key_from_instance(obj):
     if obj is None:
         return '<null_id>'
     return get_model_from_instance(obj) + '.' + str(obj.pk)
+
+
+# For backward compatibility
+RelatedObjectsCollector = DeepCollector
