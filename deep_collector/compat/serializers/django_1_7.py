@@ -1,7 +1,6 @@
 import warnings
 from django.core.serializers.json import Serializer
 from django.utils import six
-from django.utils.deprecation import RemovedInDjango19Warning
 
 
 class CustomizableLocalFieldsSerializer(Serializer):
@@ -20,6 +19,7 @@ class CustomizableLocalFieldsSerializer(Serializer):
         """
         Serialize a queryset.
         """
+        from django.utils.deprecation import RemovedInDjango19Warning
         self.options = options
 
         self.stream = options.pop("stream", six.StringIO())
