@@ -15,8 +15,8 @@ class O2ODummyModel(models.Model):
 
 class BaseModel(models.Model):
     name = models.CharField(max_length=255)
-    fkey = models.ForeignKey(FKDummyModel)
-    o2o = models.OneToOneField(O2ODummyModel)
+    fkey = models.ForeignKey(FKDummyModel, on_delete=models.CASCADE)
+    o2o = models.OneToOneField(O2ODummyModel, on_delete=models.CASCADE)
 
 
 class SubClassOfBaseModel(BaseModel):
@@ -35,12 +35,12 @@ class ManyToManyToBaseModelWithRelatedName(models.Model):
 
 class ForeignKeyToBaseModel(models.Model):
     name = models.CharField(max_length=255)
-    fkeyto = models.ForeignKey(BaseModel)
+    fkeyto = models.ForeignKey(BaseModel, on_delete=models.CASCADE)
 
 
 class OneToOneToBaseModel(models.Model):
     name = models.CharField(max_length=255)
-    o2oto = models.OneToOneField(BaseModel)
+    o2oto = models.OneToOneField(BaseModel, on_delete=models.CASCADE)
 
 
 class ClassLevel1(models.Model):
@@ -49,12 +49,12 @@ class ClassLevel1(models.Model):
 
 class ClassLevel2(models.Model):
     name = models.CharField(max_length=255)
-    fkey = models.ForeignKey(ClassLevel1)
+    fkey = models.ForeignKey(ClassLevel1, on_delete=models.CASCADE)
 
 
 class ClassLevel3(models.Model):
     name = models.CharField(max_length=255)
-    fkey = models.ForeignKey(ClassLevel2)
+    fkey = models.ForeignKey(ClassLevel2, on_delete=models.CASCADE)
 
 
 class ChildModel(BaseModel):
@@ -62,13 +62,13 @@ class ChildModel(BaseModel):
 
 
 class InvalidFKRootModel(models.Model):
-    valid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='valid_non_root_fk', null=True)
-    invalid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='invalid_non_root_fk', null=True)
+    valid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='valid_non_root_fk', null=True, on_delete=models.CASCADE)
+    invalid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='invalid_non_root_fk', null=True, on_delete=models.CASCADE)
 
 
 class InvalidFKNonRootModel(models.Model):
-    valid_fk = models.ForeignKey(InvalidFKRootModel, related_name='valid_root_fk', null=True)
-    invalid_fk = models.ForeignKey(InvalidFKRootModel, related_name='invalid_root_fk', null=True)
+    valid_fk = models.ForeignKey(InvalidFKRootModel, related_name='valid_root_fk', null=True, on_delete=models.CASCADE)
+    invalid_fk = models.ForeignKey(InvalidFKRootModel, related_name='invalid_root_fk', null=True, on_delete=models.CASCADE)
 
 
 class GFKModel(models.Model):
