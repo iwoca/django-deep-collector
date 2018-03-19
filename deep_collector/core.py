@@ -1,6 +1,7 @@
 
 import logging
 
+import django
 from django.db.models import ForeignKey, OneToOneField
 
 from .compat.builtins import basestring, StringIO
@@ -334,8 +335,15 @@ class DeepCollector(object):
         """
         if not self.ALLOWS_SAME_TYPE_AS_ROOT_COLLECT:
             for field in self.get_local_fields(obj):
-                if isinstance(field, ForeignKey) and not field.unique and field.rel.to == type(self.root_obj):
-                    setattr(obj, field.name, self.root_obj)
+                if isinstance(field, ForeignKey) and not field.unique:
+                    # Relative field's API has been changed Django 2.0
+                    # See https://docs.djangoproject.com/en/2.0/releases/1.9/#field-rel-changes for details
+                    if django.VERSION[0] == 2:
+                        remote_model = field.remote_field.model
+                    else:
+                        remote_model = field.rel.to
+                    if isinstance(self.root_obj, remote_model):
+                        setattr(obj, field.name, self.root_obj)
 
     def get_local_fields(self, obj):
         # Use the concrete parent class' _meta instead of the object's _meta
