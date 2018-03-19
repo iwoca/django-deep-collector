@@ -19,6 +19,28 @@ matrix:
   exclude:
     - python: 3.4
       env: TOXENV=django14
+    - python: 3.5
+      env: TOXENV=django14
+    - python: 3.6
+      env: TOXENV=django14
+
+    - python: 3.5
+      env: TOXENV=django15
+    - python: 3.6
+      env: TOXENV=django15
+
+    - python: 3.5
+      env: TOXENV=django16
+    - python: 3.6
+      env: TOXENV=django16
+
+    - python: 3.5
+      env: TOXENV=django17
+    - python: 3.6
+      env: TOXENV=django17
+
+    - python: 2.7
+      env: TOXENV=django20
 
 script:
   - tox
