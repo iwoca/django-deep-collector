@@ -10,8 +10,10 @@ Django custom collector used to get every objects that are related to given obje
 Install
 =======
 
-.. code-block:: python
-    pip install django-deep-collector
+::
+
+    $ pip install django-deep-collector
+
 
 Usage
 =====
