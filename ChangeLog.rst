@@ -2,6 +2,18 @@ ChangeLog
 =========
 
 
+.. _v0.5.0:
+
+0.5.0 (2019-03-02)
+------------------
+
+*New:*
+
+    - Renaming the main class to be ``DeepCollector`` instead of ``RelatedObjectsCollector`` (more consistent with the package naming)
+    - Add an event logger method to easily customise collector event logs (instead of only relying on the default python logger)
+    - Add compatibility for Django 2.0.
+
+
 .. _v0.4.2:
 
 0.4.2 (2016-07-04)
