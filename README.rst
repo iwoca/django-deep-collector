@@ -7,18 +7,24 @@ Deep Collector
 
 Django custom collector used to get every objects that are related to given object.
 
+Install
+=======
+
+.. code-block:: python
+    pip install django-deep-collector
+
 Usage
 =====
 
-Create a new instance of RelatedObjectsCollector, and launch collector on one object:
+Create a new instance of DeepCollector, and launch collector on one object:
 
 .. code-block:: python
 
-    from deep_collector.core import RelatedObjectsCollector
+    from deep_collector.core import DeepCollector
     from django.contrib.auth.models import User
 
     user = User.objects.all()[0]
-    collector = RelatedObjectsCollector()
+    collector = DeepCollector()
     collector.collect(user)
     related_objects = collector.get_collected_objects()
 

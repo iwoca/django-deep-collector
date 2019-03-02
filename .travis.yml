@@ -3,19 +3,22 @@ language: python
 python:
   - 2.7
   - 3.4
+  - 3.5
+  - 3.6
 
 env:
-  - TOXENV=django14
-  - TOXENV=django15
-  - TOXENV=django16
-  - TOXENV=django17
-  - TOXENV=django18
-  - TOXENV=django19
+  - TOXENV=django111
+  - TOXENV=django20
+  - TOXENV=django21
 
 matrix:
   exclude:
+    - python: 2.7
+      env: TOXENV=django20
+    - python: 2.7
+      env: TOXENV=django21
     - python: 3.4
-      env: TOXENV=django14
+      env: TOXENV=django21
 
 script:
   - tox
