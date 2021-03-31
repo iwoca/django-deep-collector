@@ -1,7 +1,6 @@
-import json
+from django.core.serializers.json import Serializer
 
-from django.core.serializers.json import Serializer, DjangoJSONEncoder
-from django.utils import six
+from ..builtins import StringIO
 
 
 class CustomizableLocalFieldsSerializer(Serializer):
@@ -20,7 +19,7 @@ class CustomizableLocalFieldsSerializer(Serializer):
         """
         self.options = options
 
-        self.stream = options.pop("stream", six.StringIO())
+        self.stream = options.pop("stream", StringIO())
         self.selected_fields = options.pop("fields", None)
         self.use_natural_foreign_keys = options.pop('use_natural_foreign_keys', False)
         self.use_natural_primary_keys = options.pop('use_natural_primary_keys', False)

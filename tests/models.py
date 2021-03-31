@@ -62,13 +62,13 @@ class ChildModel(BaseModel):
 
 
 class InvalidFKRootModel(models.Model):
-    valid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='valid_non_root_fk', null=True, on_delete=models.CASCADE)
-    invalid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='invalid_non_root_fk', null=True, on_delete=models.CASCADE)
+    valid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='valid_non_root_fk', null=True, on_delete=models.CASCADE, db_constraint=False)
+    invalid_fk = models.ForeignKey('InvalidFKNonRootModel', related_name='invalid_non_root_fk', null=True, on_delete=models.CASCADE, db_constraint=False)
 
 
 class InvalidFKNonRootModel(models.Model):
-    valid_fk = models.ForeignKey(InvalidFKRootModel, related_name='valid_root_fk', null=True, on_delete=models.CASCADE)
-    invalid_fk = models.ForeignKey(InvalidFKRootModel, related_name='invalid_root_fk', null=True, on_delete=models.CASCADE)
+    valid_fk = models.ForeignKey(InvalidFKRootModel, related_name='valid_root_fk', null=True, on_delete=models.CASCADE, db_constraint=False)
+    invalid_fk = models.ForeignKey(InvalidFKRootModel, related_name='invalid_root_fk', null=True, on_delete=models.CASCADE, db_constraint=False)
 
 
 class GFKModel(models.Model):
