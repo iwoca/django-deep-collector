@@ -338,7 +338,7 @@ class DeepCollector(object):
                 if isinstance(field, ForeignKey) and not field.unique:
                     # Relative field's API has been changed Django 2.0
                     # See https://docs.djangoproject.com/en/2.0/releases/1.9/#field-rel-changes for details
-                    if django.VERSION[0] == 2:
+                    if django.VERSION[0] >= 2:
                         remote_model = field.remote_field.model
                     else:
                         remote_model = field.rel.to
